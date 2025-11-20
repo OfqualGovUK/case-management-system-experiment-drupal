@@ -12,8 +12,16 @@ use Drupal\key\Entity\Key;
  *   The user account that logged in.
  */
 function ofqual_custom_notify_user_login(UserInterface $account) {
-  \Drupal::messenger()->addMessage(t('Welcome back, @username!', ['@username' => $account->getAccountName()]));
-  \Drupal::logger('ofqual_custom_notify')->notice('User @username has logged in.', ['@username' => $account->getAccountName()]);
+  $accountName = $account->getAccountName();
+  $targetUpn = $account->getEmail();
+
+  if (empty($targetUpn)) {
+    \Drupal::logger('ofqual_custom_notify')->error('User email is missing for @username', ['@username' => $accountName]);
+    return;
+  }
+
+  \Drupal::messenger()->addMessage(t('Welcome back, @username!', ['@username' => $accountName]));
+  \Drupal::logger('ofqual_custom_notify')->notice('User @username has logged in.', ['@username' => $accountName]);
 
   $requiredKeys = [
     'source_id' => 'source_id',
@@ -32,18 +40,12 @@ function ofqual_custom_notify_user_login(UserInterface $account) {
     $apiCredentials[$property] = $keyEntity->getKeyValue();
   }
 
-  $targetUpn = $account->getEmail();
-  if (empty($targetUpn)) {
-    \Drupal::logger('ofqual_custom_notify')->error('User email is missing for @username', ['@username' => $account->getAccountName()]);
-    return;
-  }
-
   $notificationPayload = [
-    'SourceId'      => $apiCredentials['source_id'],
-    'SourceModule'  => 1,
-    'SourceUpn'     => $apiCredentials['source_upn'],
-    'Summary'       => 'Hi, New user logged in using SSO',
-    'TargetUpn'     => $targetUpn,
+      'SourceId'      => $apiCredentials['source_id'],
+      'SourceModule'  => 1,
+      'SourceUpn'     => $apiCredentials['source_upn'],
+      'Summary'       => "$accountName successfully signed in via Single Sign-On",
+      'TargetUpn'     => $targetUpn,
   ];
 
   $notificationService = \Drupal::service('ofqual_custom_notify.notification_service');
