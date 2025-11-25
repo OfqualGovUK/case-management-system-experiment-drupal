@@ -14,13 +14,28 @@ class CasesController extends ControllerBase
      */
     public function casesPage()
     {
-        // Retrieve Azure and API credentials from environment variables.
-        $clientId = getenv('AZURE_CLIENT_ID');
-        $clientSecret = getenv('AZURE_CLIENT_SECRET');
-        $tenantId = getenv('AZURE_TENANT_ID');
-        $scope = getenv('AZURE_SCOPE');
-        $subscriptionKey = getenv('APIM_SUBSCRIPTION_KEY');
-        $casesUrl = getenv('APIM_CASES_URL');
+        // Define required environment variables.
+        $requiredEnvVars = [
+            'AZURE_CLIENT_ID',
+            'AZURE_CLIENT_SECRET',
+            'AZURE_TENANT_ID',
+            'AZURE_SCOPE',
+            'APIM_SUBSCRIPTION_KEY',
+            'APIM_CASES_URL',
+        ];
+
+        $env = [];
+        foreach ($requiredEnvVars as $var) {
+            $value = getenv($var);
+            if (empty($value)) {
+                \Drupal::logger('cases')->error('Missing environment variable: @var', ['@var' => $var]);
+                \Drupal::messenger()->addError('Configuration error: Missing ' . $var);
+                return [
+                    '#markup' => '<p>Configuration error. Please contact the administrator.</p>',
+                ];
+            }
+            $env[strtolower($var)] = $value;
+        }
 
         $cases = [];
         try {
@@ -28,28 +43,28 @@ class CasesController extends ControllerBase
             $httpClient = \Drupal::httpClient();
 
             // Request an OAuth2 access token from Azure AD.
-            $response = $httpClient->post("https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token", [
+            $response = $httpClient->post('https://login.microsoftonline.com/' . $env['azure_tenant_id'] . '/oauth2/v2.0/token', [
                 'form_params' => [
                     'grant_type' => 'client_credentials',
-                    'client_id' => $clientId,
-                    'client_secret' => $clientSecret,
-                    'scope' => $scope,
+                    'client_id' => $env['azure_client_id'],
+                    'client_secret' => $env['azure_client_secret'],
+                    'scope' => $env['azure_scope'],
                 ],
             ]);
+
             $tokenData = json_decode($response->getBody(), true);
             $accessToken = $tokenData['access_token'] ?? null;
 
-            // If access token is received, call the external Cases API using env vars for URL and subscription key.
+            // If access token is received, call the external Cases API.
             if ($accessToken) {
-                $apiResponse = $httpClient->get($casesUrl, [
+                $apiResponse = $httpClient->get($env['apim_cases_url'], [
                     'headers' => [
-                        // Bearer token for authentication.
                         'Authorization' => 'Bearer ' . $accessToken,
-                        // Azure API Management subscription key from env var.
-                        'Ocp-Apim-Subscription-Key' => $subscriptionKey,
+                        'Ocp-Apim-Subscription-Key' => $env['apim_subscription_key'],
                         'Accept' => 'application/json',
                     ],
                 ]);
+
                 $apiData = json_decode($apiResponse->getBody(), true);
 
                 // Parse the API response and build the cases array for the table rows.
@@ -58,20 +73,19 @@ class CasesController extends ControllerBase
                         $attr = $item['attributes'] ?? [];
                         $cases[] = [
                             'cells' => [
-                                $item['id'] ?? '', // Case ID
-                                $attr['name'] ?? '', // Title
-                                $attr['type'] ?? '', // Case type
-                                $attr['status'] ?? '', // Status
-                                $attr['assigned_user_name'] ?? '', // Submitted by
-                                $attr['date_entered'] ?? '', // Date
+                                $item['id'] ?? '',
+                                $attr['name'] ?? '',
+                                $attr['type'] ?? '',
+                                $attr['status'] ?? '',
+                                $attr['assigned_user_name'] ?? '',
+                                $attr['date_entered'] ?? '',
                             ],
                         ];
                     }
                 }
             }
         } catch (\Exception $e) {
-            // Log the error and show a message to the user if the API call fails.
-            \Drupal::logger('cases')->error($e->getMessage());
+            \Drupal::logger('cases')->error('API error: @message', ['@message' => $e->getMessage()]);
             \Drupal::messenger()->addError('Could not load cases.');
         }
 

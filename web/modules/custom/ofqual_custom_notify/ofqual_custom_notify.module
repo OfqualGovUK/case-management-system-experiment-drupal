@@ -1,7 +1,6 @@
 <?php
 
 use Drupal\user\UserInterface;
-use Drupal\key\Entity\Key;
 
 /**
  * Implements hook_user_login().
@@ -23,31 +22,33 @@ function ofqual_custom_notify_user_login(UserInterface $account) {
   \Drupal::messenger()->addMessage(t('Welcome back, @username!', ['@username' => $accountName]));
   \Drupal::logger('ofqual_custom_notify')->notice('User @username has logged in.', ['@username' => $accountName]);
 
-  $requiredKeys = [
-    'source_id' => 'source_id',
-    'source_upn' => 'source_upn'
+  // Required environment variables
+  $requiredEnvVars = [
+    'NOTIFICATION_SOURCE_ID',
+    'NOTIFICATION_SOURCE_UPN',
   ];
 
   $apiCredentials = [];
-  $keyRepository = \Drupal::service('key.repository');
 
-  foreach ($requiredKeys as $property => $keyId) {
-    $keyEntity = $keyRepository->getKey($keyId);
-    if (!$keyEntity || empty($keyEntity->getKeyValue())) {
-      \Drupal::logger('ofqual_custom_notify')->error('Missing key: @key', ['@key' => $keyId]);
+  foreach ($requiredEnvVars as $envVar) {
+    $value = getenv($envVar);
+    if (empty($value)) {
+      \Drupal::logger('ofqual_custom_notify')->error('Missing environment variable: @var', ['@var' => $envVar]);
       return;
     }
-    $apiCredentials[$property] = $keyEntity->getKeyValue();
+    $apiCredentials[strtolower($envVar)] = $value;
   }
 
+  // Prepare notification payload
   $notificationPayload = [
-      'SourceId'      => $apiCredentials['source_id'],
-      'SourceModule'  => 1,
-      'SourceUpn'     => $apiCredentials['source_upn'],
-      'Summary'       => "$accountName successfully signed in via Single Sign-On",
-      'TargetUpn'     => $targetUpn,
+    'SourceId'      => $apiCredentials['notification_source_id'],
+    'SourceModule'  => 1,
+    'SourceUpn'     => $apiCredentials['notification_source_upn'],
+    'Summary'       => "$accountName successfully signed in via Single Sign-On",
+    'TargetUpn'     => $targetUpn,
   ];
 
+  // Send notification using the service
   $notificationService = \Drupal::service('ofqual_custom_notify.notification_service');
   $notificationService->send($notificationPayload);
 }
