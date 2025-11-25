@@ -1,38 +1,37 @@
 # Cases Module
 
-## INTRODUCTION
+## Introduction
 
 The **Cases** module provides a custom controller and a block that render
 a Carbon Design System data table using inline templates. This is useful
 for displaying structured case data in a consistent, styled format.
 
-## FEATURES
+## Features
 
 - **Custom Route**: Displays a table of cases using a controller.
 - **Custom Block**: Embeds the same table in a block that can be placed in any region.
 - **Carbon Design System Integration**: Uses an inline Twig template to render
   the table with Carbon V1 styles.
 
-## REQUIREMENTS
+## Requirements
 
 * Drupal 11 core
 * PHP 8.2 or higher
 
 No additional modules or libraries are required.
 
-## INSTALLATION
+## Installation
 
 Install the Cases module using a standard Drupal installation method.
 
-1. Place the 'cases' module in your Drupal installation under
-   '/modules/custom/cases'.
+1. Place the  module in your Drupal installation under '/modules/custom'.
 2. Enable the module via the UI or Drush:
+```
+drush en cases -y
+drush cr
+```
 
-   drush en cases -y
-   drush cr
-
-
-## USAGE
+## Usage
 
 - Visit the '/cases' route to view a Carbon-styled data table of
   predefined case entries rendered by the module’s controller.
@@ -41,7 +40,7 @@ Install the Cases module using a standard Drupal installation method.
 - The table is rendered using the Carbon Design System’s
   `cds-data-table` Twig component for styling consistency.
 
-## MAINTAINERS
+## Maintainers
 
 * Module: Cases ('cases')
 * Maintainer: Ofqual Drupal Team
