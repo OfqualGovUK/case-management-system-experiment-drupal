@@ -256,7 +256,7 @@ $databases = [];
  * directory in the public files path. The setting below allows you to set
  * its location.
  */
-# $settings['config_sync_directory'] = '/directory/outside/webroot';
+ $settings['config_sync_directory'] = '../config/sync';
 
 /**
  * Settings:
@@ -848,10 +848,14 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 #   include $app_root . '/' . $site_path . '/settings.local.php';
 # }
 
-$settings['config_sync_directory'] = '/bitnami/drupal/sites/default/files/config/sync';
-
 $config['openid_connect.client.entraid']['settings']['client_id'] = getenv('OPENID_CLIENT_ID');
 $config['openid_connect.client.entraid']['settings']['client_secret'] = getenv('OPENID_CLIENT_SECRET');
 $config['openid_connect.client.entraid']['settings']['authorization_endpoint'] = getenv('OPENID_AUTH_ENDPOINT');
 $config['openid_connect.client.entraid']['settings']['token_endpoint'] = getenv('OPENID_TOKEN_ENDPOINT');
 $config['openid_connect.client.entraid']['settings']['userinfo_endpoint'] = getenv('OPENID_USERINFO_ENDPOINT');
+
+// Automatically generated include for settings managed by ddev.
+$ddev_settings = __DIR__ . '/settings.ddev.php';
+if (getenv('IS_DDEV_PROJECT') == 'true' && is_readable($ddev_settings)) {
+  require $ddev_settings;
+}

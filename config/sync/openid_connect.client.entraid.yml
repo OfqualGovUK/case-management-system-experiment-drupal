@@ -1,7 +1,7 @@
 uuid: ddc6c38a-7b5e-4b1a-90f6-cab5ee603ac9
 langcode: en-gb
 status: true
-dependencies: { }
+dependencies: {  }
 id: entraid
 label: EntraId
 plugin: generic

@@ -5,15 +5,15 @@
 /web/themes/contrib/
 /web/profiles/contrib/
 /web/sites/*/files/
- 
+
 # Ignore DDEV & local env
 .ddev/
 .env
 *.log
- 
+
 # Node dependencies
 node_modules/
- 
+
 # OS & IDE files
 .DS_Store
 *.swp
@@ -25,3 +25,96 @@ docker-compose.yml
 
 # Ignore Keys
 keys/
+/.csslintrc
+/.eslintignore
+/.eslintrc.json
+/.ht.router.php
+/.htaccess
+/INSTALL.txt
+/README.md
+/autoload.php
+/example.gitignore
+/index.php
+/robots.txt
+/update.php
+
+# Exclude composer vendor directories.
+/drush/contrib/
+/vendor/
+/web/core/
+/web/modules/contrib/
+/web/themes/contrib/
+/web/profiles/contrib/
+/web/libraries/
+/console
+
+# Ignore all node_modules folders.
+node_modules/
+npm-debug.log
+
+# Exclude the main drupal scaffold files.
+# If we want to make changes to any of these files
+# we must first remove them from gitignore and
+# exclude from drupal-scaffold in the composer.json
+web/autoload.php
+web/.csslintrc
+web/.editorconfig
+web/.eslintignore
+web/.eslintrc.json
+web/.gitattributes
+web/.htaccess
+private/.htaccess
+web/index.php
+web/sites/default/default.settings.php
+web/sites/default/default.services.yml
+web/sites/development.services.yml
+web/sites/example.settings.local.php
+web/sites/example.sites.php
+web/update.php
+
+# Ignore CSS stylesheet/maps.
+web/themes/custom/carbonv1/assets
+
+# Exclude Drupal files.
+/web/sites/*/files/*
+!/web/sites/*/files/.gitkeep
+/private/*
+!/private/.gitkeep
+
+# Ignore environment specific and sensitive information.
+/web/sites/*/settings.local.php
+/web/sites/*/services.local.yml
+
+# Exclude configuration for developer only modules.
+/config/sync/devel.*
+
+# Exclude project files.
+/.idea/
+/.docksal
+/.ddev
+*.DS_Store
+.buildpath
+.project
+.settings/
+/nbproject/
+
+# Exclude local environment settings
+.env
+
+auth.json
+/.csslintrc
+/.editorconfig
+/.eslintignore
+/.eslintrc.json
+/.gitattributes
+/.ht.router.php
+/.htaccess
+/INSTALL.txt
+/README.txt
+/README.md
+/autoload.php
+/example.gitignore
+/index.php
+/robots.txt
+/update.php
+/web.config
