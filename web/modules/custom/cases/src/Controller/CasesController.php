@@ -21,7 +21,7 @@ class CasesController extends ControllerBase
             'AZURE_TENANT_ID',
             'AZURE_SCOPE',
             'APIM_SUBSCRIPTION_KEY',
-            'APIM_CASES_URL',
+            'APIM_API_URL',
         ];
 
         $env = [];
@@ -57,7 +57,7 @@ class CasesController extends ControllerBase
 
             // If access token is received, call the external Cases API.
             if ($accessToken) {
-                $apiResponse = $httpClient->get($env['apim_cases_url'], [
+                $apiResponse = $httpClient->get($env['apim_api_url'] . '/suitecrm/custom/oqmodule/Cases', [
                     'headers' => [
                         'Authorization' => 'Bearer ' . $accessToken,
                         'Ocp-Apim-Subscription-Key' => $env['apim_subscription_key'],
