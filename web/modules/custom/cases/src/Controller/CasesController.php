@@ -71,14 +71,30 @@ class CasesController extends ControllerBase
                 if (isset($apiData['data']) && is_array($apiData['data'])) {
                     foreach ($apiData['data'] as $item) {
                         $attr = $item['attributes'] ?? [];
+                        $caseId = $item['id'] ?? '';
+
+                        // Make second API call for detailed case info
+                        $detailResponse = $httpClient->get($env['apim_api_url'] . '/suitecrm/custom/oqmodule/Cases/' . $caseId, [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $accessToken,
+                                'Ocp-Apim-Subscription-Key' => $env['apim_subscription_key'],
+                                'Accept' => 'application/json',
+                            ],
+                        ]);
+
+                        $detailData = json_decode($detailResponse->getBody(), true);
+                        $detailAttr = $detailData['data']['attributes'] ?? [];
+
+                        // Put all attributes in the last cell as JSON
                         $cases[] = [
                             'cells' => [
-                                $item['id'] ?? '',
+                                $caseId,
                                 $attr['name'] ?? '',
                                 $attr['type'] ?? '',
                                 $attr['status'] ?? '',
                                 $attr['assigned_user_name'] ?? '',
                                 $attr['date_entered'] ?? '',
+                                json_encode($detailAttr, JSON_PRETTY_PRINT),
                             ],
                         ];
                     }
@@ -90,7 +106,7 @@ class CasesController extends ControllerBase
         }
 
         // Define the table headers for the data table.
-        $header = ['CaseID', 'Title', 'Case type', 'Status', 'Submitted by', 'Date'];
+        $header = ['CaseID', 'Title', 'Case type', 'Status', 'Submitted by', 'Date', 'All Attributes'];
 
         // Return a render array using the CarbonV1 data table component.
         return [
@@ -105,7 +121,7 @@ class CasesController extends ControllerBase
                     'paginated' => true,
                     'page_size' => 10,
                     'page_sizes' => [10, 20, 50],
-                    'column_types' => ['string', 'string', 'string', 'string', 'string', 'date'],
+                    'column_types' => ['string', 'string', 'string', 'string', 'string', 'date', 'string'],
                 ],
             ],
         ];
