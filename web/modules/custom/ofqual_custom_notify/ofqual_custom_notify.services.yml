@@ -1,4 +1,4 @@
 services:
   ofqual_custom_notify.notification_service:
     class: Drupal\ofqual_custom_notify\Service\NotificationService
-    arguments: ['@http_client', '@logger.factory', '@key.repository']
+    arguments: ['@http_client', '@logger.factory']
