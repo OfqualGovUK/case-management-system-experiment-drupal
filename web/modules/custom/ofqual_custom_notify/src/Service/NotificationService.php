@@ -5,7 +5,6 @@ namespace Drupal\ofqual_custom_notify\Service;
 use GuzzleHttp\ClientInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
-use Drupal\key\KeyRepository;
 use Drupal\Component\Serialization\Json;
 
 /**
@@ -29,30 +28,19 @@ class NotificationService
   protected LoggerChannelInterface $logger;
 
   /**
-   * The key repository.
-   *
-   * @var \Drupal\key\KeyRepository
-   */
-  protected KeyRepository $keyRepository;
-
-  /**
    * Constructs the NotificationService.
    *
    * @param \GuzzleHttp\ClientInterface $httpClient
    *   The HTTP client.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   The logger factory.
-   * @param \Drupal\key\KeyRepository $keyRepository
-   *   The key repository.
    */
   public function __construct(
     ClientInterface $httpClient,
-    LoggerChannelFactoryInterface $loggerFactory,
-    KeyRepository $keyRepository
+    LoggerChannelFactoryInterface $loggerFactory
   ) {
     $this->httpClient = $httpClient;
     $this->logger = $loggerFactory->get('ofqual_custom_notify');
-    $this->keyRepository = $keyRepository;
   }
 
   /**
@@ -67,32 +55,33 @@ class NotificationService
   public function send(array $notificationPayload): bool
   {
     try {
-      $requiredKeys = [
-        'client_id' => 'client_id',
-        'client_secret' => 'client_secret',
-        'grant_type' => 'grant_type',
-        'scope' => 'scope',
-        'token_endpoint' => 'token_endpoint',
-        'notification_api' => 'notification_api',
+      $requiredEnvVars = [
+        'NOTIFICATION_CLIENT_ID',
+        'NOTIFICATION_CLIENT_SECRET',
+        'NOTIFICATION_GRANT_TYPE',
+        'NOTIFICATION_SCOPE',
+        'NOTIFICATION_API_URL',
+        'AZURE_TENANT_ID'
       ];
 
       $apiCredentials = [];
 
-      foreach ($requiredKeys as $property => $keyId) {
-        $keyValue = $this->keyRepository->getKey($keyId)->getKeyValue();
-        if (empty($keyValue)) {
-          $this->logger->error('Missing key: @key', ['@key' => $keyId]);
+      foreach ($requiredEnvVars as $envVar) {
+        $value = getenv($envVar);
+        if (empty($value)) {
+          $this->logger->error('Missing environment variable: @var', ['@var' => $envVar]);
           return FALSE;
         }
-        $apiCredentials[$property] = $keyValue;
+        $apiCredentials[strtolower($envVar)] = $value;
       }
 
-      $accessTokenResponse = $this->httpClient->post($apiCredentials['token_endpoint'], [
+      // Get access token
+      $accessTokenResponse = $this->httpClient->post('https://login.microsoftonline.com/' . $apiCredentials['azure_tenant_id'] . '/oauth2/v2.0/token', [
         'form_params' => [
-          'client_id'     => $apiCredentials['client_id'],
-          'client_secret' => $apiCredentials['client_secret'],
-          'grant_type'    => $apiCredentials['grant_type'],
-          'scope'         => $apiCredentials['scope'],
+          'client_id'     => $apiCredentials['notification_client_id'],
+          'client_secret' => $apiCredentials['notification_client_secret'],
+          'grant_type'    => $apiCredentials['notification_grant_type'],
+          'scope'         => $apiCredentials['notification_scope'],
         ],
       ]);
 
@@ -102,7 +91,8 @@ class NotificationService
         return FALSE;
       }
 
-      $notificationResponse = $this->httpClient->post($apiCredentials['notification_api'], [
+      // Send notification
+      $notificationResponse = $this->httpClient->post($apiCredentials['notification_api_url'] . '/notifications', [
         'json' => $notificationPayload,
         'timeout' => 10,
         'headers' => [
