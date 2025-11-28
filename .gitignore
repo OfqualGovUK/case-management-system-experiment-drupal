@@ -12,6 +12,27 @@
 /web/profiles/contrib/
 /web/libraries/
 /drush/contrib/
+web/.csslintrc
+web/.eslintignore
+web/.eslintrc.json
+web/.ht.router.php
+web/.htaccess
+web/example.gitignore
+web/index.php
+web/INSTALL.txt
+web/README.txt
+web/robots.txt
+web/update.php
+web/web.config
+web/sites/README.txt
+web/sites/development.services.yml
+web/sites/example.settings.local.php
+web/sites/example.sites.php
+web/sites/default/default.services.yml
+web/sites/default/default.settings.php
+web/modules/README.txt
+web/profiles/README.txt
+web/themes/README.txt
 
 # The main top-level Composer dependency directories and files:
 /autoload.php
@@ -65,3 +86,5 @@ docker-compose.yml
 .project
 .settings/
 /nbproject/
+/.editorconfig
+/.gitattributes

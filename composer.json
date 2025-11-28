@@ -9,7 +9,7 @@
     }
   ],
   "require": {
-    "php": "^8.3.0",
+    "php": "^8.4.0",
     "composer/installers": "^2.3",
     "drupal/admin_toolbar": "^3.6",
     "drupal/coffee": "2.0.1",
@@ -33,13 +33,13 @@
   "config": {
     "allow-plugins": {
       "composer/installers": true,
-      "drupal/core-composer-scaffold": true,
-      "drupal/core-recipe-unpack": true,
-      "drupal/core-project-message": true,
-      "phpstan/extension-installer": true,
       "dealerdirect/phpcodesniffer-composer-installer": true,
+      "drupal/core-composer-scaffold": true,
+      "drupal/core-project-message": true,
+      "drupal/core-recipe-unpack": true,
       "php-http/discovery": true,
-      "php-tuf/composer-integration": true
+      "php-tuf/composer-integration": true,
+      "phpstan/extension-installer": true
     },
     "sort-packages": true,
     "platform": {
@@ -49,13 +49,21 @@
   },
   "extra": {
     "installer-paths": {
-        "web/core": ["type:drupal-core"],
-        "web/libraries/{$name}": ["type:drupal-library"],
-        "web/modules/contrib/{$name}": ["type:drupal-module"],
-        "web/profiles/contrib/{$name}": ["type:drupal-profile"],
-        "web/themes/contrib/{$name}": ["type:drupal-theme"],
-        "drush/contrib/{$name}": ["type:drupal-drush"],
-        "type:drupal-custom-theme": ["type:drupal-custom-theme"]
+      "web/core": ["type:drupal-core"],
+      "web/libraries/{$name}": ["type:drupal-library"],
+      "web/modules/contrib/{$name}": ["type:drupal-module"],
+      "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+      "web/themes/contrib/{$name}": ["type:drupal-theme"],
+      "drush/contrib/{$name}": ["type:drupal-drush"],
+      "type:drupal-custom-theme": ["type:drupal-custom-theme"]
+    },
+    "drupal-scaffold": {
+      "locations": {
+        "web-root": "web/"
+      },
+      "symlink": false,
+      "overwrite": true,
+      "source": "drupal/core-recommended"
     }
   },
   "require-dev": {
