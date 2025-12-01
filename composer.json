@@ -12,7 +12,6 @@
     "php": "^8.4.0",
     "composer/installers": "^2.3",
     "drupal/admin_toolbar": "^3.6",
-    "drupal/coffee": "2.0.1",
     "drupal/consumers": "^1.22",
     "drupal/core-composer-scaffold": "^11.2",
     "drupal/core-project-message": "^11.2",
