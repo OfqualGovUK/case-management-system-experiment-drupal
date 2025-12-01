@@ -6,11 +6,15 @@ dependencies:
     - core.entity_view_mode.node.teaser
     - field.field.node.page.body
     - field.field.node.page.field_title
-    - field.field.node.page.layout_builder__layout
     - node.type.page
   module:
     - text
     - user
+third_party_settings:
+  field_layout:
+    id: layout_onecol
+    settings:
+      label: ''
 _core:
   default_config_hash: 8BgdRtLbtQ0F__o0FHSH0Mx5fvXOra9tfT1GmNKbRYw
 id: node.page.teaser
@@ -32,4 +36,3 @@ content:
 hidden:
   field_title: true
   langcode: true
-  layout_builder__layout: true

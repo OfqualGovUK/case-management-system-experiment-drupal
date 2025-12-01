@@ -42,7 +42,7 @@ web/themes/README.txt
 # GENERATED AND BUILD FILES
 # These are files created during runtime, installation, or build processes.
 # -----------------------------------------------------------------------------
-/web/themes/custom/carbonv1/assets
+/web/themes/custom/carbon_design_system/assets
 
 # Private and public file system directories:
 /web/sites/*/files/

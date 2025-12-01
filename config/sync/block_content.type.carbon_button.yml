@@ -1,8 +1,0 @@
-uuid: 9224f442-e73a-463d-9ded-7ebe9e9be441
-langcode: en-gb
-status: true
-dependencies: {  }
-id: carbon_button
-label: Carbon-Button
-revision: false
-description: 'Will render the Carbn button SDC'

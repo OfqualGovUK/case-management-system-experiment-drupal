@@ -1,0 +1,30 @@
+{# Renders the Carbon UI Shell component and passes in necessary data #}
+{{ include ('carbon_design_system_web_components:ui_shell_header', {
+  site_name: 'Ofqual Case Management',
+  is_authenticated: logged_in,
+  links: [
+    { title: 'Home', url: path('<front>'), is_active: true },
+    { title: 'Cases', url: 'cases' },
+    { title: 'Reports', url: 'reports' },
+  ]
+}) }}
+
+{# Your main content area is now contained within the Shell #}
+<div id="content-area">
+  <main role="main">
+    <a id="main-content" tabindex="-1"></a>{# A skip link target #}
+    {{ page.content }}
+
+    {{ include('carbon_design_system_web_components:tile', {
+      title: 'Carbon Tile',
+      content: 'This is a tile from the Carbon Design System.',
+    }) }}
+  </main>
+</div>
+
+{# You can optionally add content below the main area, outside the shell #}
+{% if page.footer %}
+  <footer role="contentinfo">
+    {{ page.footer }}
+  </footer>
+{% endif %}

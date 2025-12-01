@@ -1,8 +1,0 @@
-# Schema for the configuration files of the carbonv1 theme.
-carbonv1.settings:
-  type: theme_settings
-  label: 'carbonv1 settings'
-  mapping:
-    example:
-      type: string
-      label: Example

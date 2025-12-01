@@ -1,0 +1,9 @@
+carbon:
+  header: true
+  remote: [https://github.com/carbon-design-system/carbon](https://github.com/carbon-design-system/carbon)
+  license:
+    name: Apache-2.0
+    url: [https://github.com/carbon-design-system/carbon/blob/main/LICENSE](https://github.com/carbon-design-system/carbon/blob/main/LICENSE)
+  js:
+    # Loading the Carbon Web Components bundle via CDN
+    '[https://jspm.dev/@carbon/web-components](https://jspm.dev/@carbon/web-components)': { type: external, attributes: { type: module } }

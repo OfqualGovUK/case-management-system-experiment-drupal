@@ -1,0 +1,22 @@
+uuid: a87e2d60-1829-4248-8eaa-b348214d1e79
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - carbon_design_system
+_core:
+  default_config_hash: a0Yyx1GeyKarZ4T_yXQBR_ZFKnXiFLtxAb6gWLd8nr0
+id: carbon_design_system_content
+theme: carbon_design_system
+region: content
+weight: 0
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 'Main page content'
+  label_display: '0'
+  provider: system
+visibility: {  }
