@@ -1,6 +1,9 @@
 name: UI Shell (Header)
 description: Implements the Carbon Design System UI Shell Header using Web Components.
 status: stable
+libraries:
+  - carbon_design_system_web_components/carbon-base-web-components
+  - carbon_design_system_web_components/ui_shell_header
 schema:
   properties:
     site_name:

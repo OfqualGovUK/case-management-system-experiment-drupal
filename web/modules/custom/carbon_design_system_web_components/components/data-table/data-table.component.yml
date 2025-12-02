@@ -1,0 +1,16 @@
+name: Data Table
+status: stable
+description: Implements the Carbon Design System Data Table using Web Components.
+props:
+  attributes:
+    type: Drupal\Core\Template\Attribute
+    description: HTML attributes for the outermost <cds-data-table> element.
+    required: false
+  headers:
+    type: array
+    description: 'An array of header objects. Example: [{ key: "id", label: "ID", sortable: true }]'
+    required: true
+  rows:
+    type: array
+    description: An array of row data objects, where keys match the header keys.
+    required: true

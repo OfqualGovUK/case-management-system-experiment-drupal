@@ -1,49 +1,56 @@
-<div class="page-wrapper">
-  {% if page.primary_menu %}
-    <nav class="primary-nav" role="navigation" aria-label="{{ 'Main navigation'|t }}">
-      {{ page.primary_menu }}
-    </nav>
-  {% endif %}
+{{ include ('carbon_design_system_web_components:ui_shell_header', {
+  site_name: 'Ofqual Case Management',
+  is_authenticated: logged_in,
+  links: [
+    { title: 'Home', url: path('<front>'), is_active: true },
+    { title: 'Cases', url: 'cases' },
+    { title: 'Reports', url: 'reports' },
+  ]
+}) }}
 
-  {% if breadcrumb is defined and breadcrumb %}
-    <nav class="breadcrumb" aria-label="{{ 'Breadcrumb'|t }}">
-      {{ breadcrumb }}
-    </nav>
-  {% endif %}
+<div id="content-area">
+  <main role="main">
+    <a id="main-content" tabindex="-1"></a>{# A skip link target #}
 
-  {% if page.highlighted %}
-    <div class="highlighted">{{ page.highlighted }}</div>
-  {% endif %}
+    {{ page.content }}
 
-  {% if page.help %}
-    <div class="help">{{ page.help }}</div>
-  {% endif %}
+    {{ include('carbon_design_system_web_components:notification', {
+      kind: 'success',
+      headline: 'Data Saved Successfully',
+      subtitle: 'Your configuration changes have been applied.',
+    }) }}
 
-  {% include '@carbonv1/includes/header.html.twig' %}
+    {{ include('carbon_design_system_web_components:notification', {
+      kind: 'error',
+      headline: 'Connection Error',
+      subtitle: 'Failed to retrieve data from the server. Please check the logs.',
+      hideCloseButton: true,
+    }) }}
 
-  <main role="main" class="site-main cds--content">
-    <a id="main-content" tabindex="-1"></a>
+    {{ include('carbon_design_system_web_components:tile', {
+      title: 'Carbon Tile',
+      content: 'This is a tile from the Carbon Design System.',
+    }) }}
 
-    {% if page.breadcrumb or page.header %}
-      <header class="content-header clearfix">
-        <div class="layout-container">
-          {{ page.breadcrumb }}
-          {{ page.header }}
-        </div>
-      </header>
-    {% endif %}
-
-    {% if page.content %}
-      <div class="page-content">
-        {{ page.content }}
-      </div>
-    {% endif %}
+    {{ include('carbon_design_system_web_components:data-table', {
+      title: 'User Management Table',
+      headers: [
+        { key: 'name', label: 'Name', sortable: true },
+        { key: 'status', label: 'Status' },
+        { key: 'role', label: 'User Role', sortable: true },
+      ],
+      rows: [
+        { name: 'John Doe', status: 'Active', role: 'Admin' },
+        { name: 'Jane Smith', status: 'Inactive', role: 'Editor' },
+        { name: 'Peter Jones', status: 'Active', role: 'User' },
+      ],
+    }) }}
 
   </main>
-
-  {% if page.footer %}
-    <footer class="site-footer" role="contentinfo">
-      {{ page.footer }}
-    </footer>
-  {% endif %}
 </div>
+
+{% if page.footer %}
+  <footer role="contentinfo">
+    {{ page.footer }}
+  </footer>
+{% endif %}

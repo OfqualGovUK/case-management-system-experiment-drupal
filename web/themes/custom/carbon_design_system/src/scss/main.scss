@@ -1,8 +1,14 @@
+@use '@carbon/styles' with (
+  $font-path: '@ibm/plex'
+);
+
 @use '@carbon/styles/scss/themes' as *;
 @use '@carbon/styles/scss/theme';
-@use '@carbon/styles';
 @use '@carbon/styles/scss/colors' as colors;
-:root {  @include theme.theme($white);   }
+
+:root {
+  @include theme.theme($white);
+}
 
 cds-header-nav,
 cds-header-menu,
@@ -14,5 +20,3 @@ cds-header-menu-item {
   --cds-link-primary-hover: #{colors.$blue-70};
   --cds-icon-primary: #{colors.$blue-60};
 }
-
-

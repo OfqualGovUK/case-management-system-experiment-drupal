@@ -2,6 +2,14 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
+  base: './',
+  css: {
+    preprocessorOptions: {
+      scss: {
+        includePaths: [resolve(__dirname, 'node_modules')]
+      }
+    }
+  },
   build: {
     manifest: true,
     outDir: 'assets',

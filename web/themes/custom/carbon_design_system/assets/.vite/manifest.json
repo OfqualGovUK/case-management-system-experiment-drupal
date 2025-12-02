@@ -1,7 +1,0 @@
-{
-  "src/scss/main.scss": {
-    "file": "style.css",
-    "src": "src/scss/main.scss",
-    "isEntry": true
-  }
-}
