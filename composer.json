@@ -1,13 +1,7 @@
 {
-  "name": "drupal/recommended-project",
-  "description": "Project template for Drupal projects with a relocated document root",
+  "name": "ofqualgovuk/case-management-system-experiment-drupal",
+  "description": "PoC Project for Ofqual Case Management",
   "type": "project",
-  "license": "GPL-2.0-or-later",
-  "homepage": "https://www.drupal.org/project/drupal",
-  "support": {
-    "docs": "https://www.drupal.org/docs/user_guide/en/index.html",
-    "chat": "https://www.drupal.org/node/314178"
-  },
   "repositories": [
     {
       "type": "composer",
@@ -15,20 +9,21 @@
     }
   ],
   "require": {
-    "php": "8.3.0",
-    "composer/installers": "2.3.0",
-    "drupal/admin_toolbar": "3.6.2",
+    "php": "^8.4.0",
+    "composer/installers": "^2.3",
+    "drupal/admin_toolbar": "^3.6",
     "drupal/coffee": "2.0.1",
-    "drupal/core-composer-scaffold": "11.2.4",
-    "drupal/core-project-message": "11.2.4",
-    "drupal/core-recipe-unpack": "11.2.4",
-    "drupal/core-recommended": "11.2.4",
-    "drupal/externalauth": "2.0.8",
-    "drupal/key": "1.20.0",
-    "drupal/openid_connect": "3.0.0-alpha6",
-    "drupal/simple_oauth": "6.0.9",
-    "drupal/ui_patterns": "2.0.11",
-    "drush/drush": "13.6.2"
+    "drupal/consumers": "^1.22",
+    "drupal/core-composer-scaffold": "^11.2",
+    "drupal/core-project-message": "^11.2",
+    "drupal/core-recipe-unpack": "^11.2",
+    "drupal/core-recommended": "^11.2",
+    "drupal/externalauth": "^2.0",
+    "drupal/key": "^1.20",
+    "drupal/openid_connect": "^3.0.0-alpha6",
+    "drupal/simple_oauth": "^6.0",
+    "drupal/ui_patterns": "^2.0",
+    "drush/drush": "^13.6"
   },
   "conflict": {
     "drupal/drupal": "*"
@@ -38,43 +33,37 @@
   "config": {
     "allow-plugins": {
       "composer/installers": true,
-      "drupal/core-composer-scaffold": true,
-      "drupal/core-recipe-unpack": true,
-      "drupal/core-project-message": true,
-      "phpstan/extension-installer": true,
       "dealerdirect/phpcodesniffer-composer-installer": true,
+      "drupal/core-composer-scaffold": true,
+      "drupal/core-project-message": true,
+      "drupal/core-recipe-unpack": true,
       "php-http/discovery": true,
-      "php-tuf/composer-integration": true
+      "php-tuf/composer-integration": true,
+      "phpstan/extension-installer": true
     },
     "sort-packages": true,
     "platform": {
-      "php": "8.3.0"
+      "php": "8.4.0"
     },
     "preferred-install": "dist"
   },
   "extra": {
     "installer-paths": {
-      "core": [
-        "type:drupal-core"
-      ],
-      "libraries/{$name}": [
-        "type:drupal-library"
-      ],
-      "modules/contrib/{$name}": [
-        "type:drupal-module"
-      ],
-      "themes/contrib/{$name}": [
-        "type:drupal-theme"
-      ],
-      "profiles/contrib/{$name}": [
-        "type:drupal-profile"
-      ],
-      "modules/custom/{$name}": [
-        "type:drupal-custom-module"
-      ],
-      "themes/custom/{$name}": [
-        "type:drupal-custom-theme"
-      ]
+      "web/core": ["type:drupal-core"],
+      "web/libraries/{$name}": ["type:drupal-library"],
+      "web/modules/contrib/{$name}": ["type:drupal-module"],
+      "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+      "web/themes/contrib/{$name}": ["type:drupal-theme"],
+      "drush/contrib/{$name}": ["type:drupal-drush"],
+      "type:drupal-custom-theme": ["type:drupal-custom-theme"]
+    },
+    "drupal-scaffold": {
+      "locations": {
+        "web-root": "web/"
+      },
+      "symlink": false,
+      "overwrite": true,
+      "source": "drupal/core-recommended"
     }
   },
   "require-dev": {
