@@ -4,14 +4,11 @@ status: true
 dependencies:
   config:
     - field.field.node.article.body
-    - field.field.node.article.comment
     - field.field.node.article.field_image
     - field.field.node.article.field_tags
-    - field.field.node.article.layout_builder__layout
     - image.style.thumbnail
     - node.type.article
   module:
-    - comment
     - field_layout
     - image
     - layout_discovery
@@ -38,12 +35,6 @@ content:
       summary_rows: 3
       placeholder: ''
       show_summary: false
-    third_party_settings: {  }
-  comment:
-    type: comment_default
-    weight: 20
-    region: content
-    settings: {  }
     third_party_settings: {  }
   created:
     type: datetime_timestamp
@@ -121,5 +112,4 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-hidden:
-  layout_builder__layout: true
+hidden: {  }
