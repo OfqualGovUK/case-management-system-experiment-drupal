@@ -1,7 +1,0 @@
-name: 'Carbon Design System (Web Components)'
-type: module
-description: 'A library of Single Directory Components using the IBM Carbon Design System web components.'
-package: Custom
-core_version_requirement: ^10.3 || ^11
-dependencies:
-  - drupal:system
