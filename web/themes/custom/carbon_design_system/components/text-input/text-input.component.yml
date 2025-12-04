@@ -1,0 +1,17 @@
+name: Text Input
+description: Implements the Carbon Design System Text Input using Web Components.
+status: stable
+props:
+  label:
+    type: string
+    label: Label Text
+    required: true
+    description: The label that appears above the input.
+  placeholder:
+    type: string
+    label: Placeholder Text
+    default: 'Enter text here'
+  helper_text:
+    type: string
+    label: Helper Text
+    default: ''

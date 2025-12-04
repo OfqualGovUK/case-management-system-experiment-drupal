@@ -1,4 +1,4 @@
-{{ include ('carbon_design_system_web_components:ui_shell_header', {
+{{ include ('carbon_design_system:ui_shell_header', {
   site_name: 'Ofqual Case Management',
   is_authenticated: logged_in,
   links: [
@@ -14,25 +14,25 @@
 
     {{ page.content }}
 
-    {{ include('carbon_design_system_web_components:notification', {
+    {{ include('carbon_design_system:notification', {
       kind: 'success',
       headline: 'Data Saved Successfully',
       subtitle: 'Your configuration changes have been applied.',
     }) }}
 
-    {{ include('carbon_design_system_web_components:notification', {
+    {{ include('carbon_design_system:notification', {
       kind: 'error',
       headline: 'Connection Error',
       subtitle: 'Failed to retrieve data from the server. Please check the logs.',
       hideCloseButton: true,
     }) }}
 
-    {{ include('carbon_design_system_web_components:tile', {
+    {{ include('carbon_design_system:tile', {
       title: 'Carbon Tile',
       content: 'This is a tile from the Carbon Design System.',
     }) }}
 
-    {{ include('carbon_design_system_web_components:data-table', {
+    {{ include('carbon_design_system:data-table', {
       title: 'User Management Table',
       headers: [
         { key: 'name', label: 'Name', sortable: true },

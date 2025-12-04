@@ -1,0 +1,30 @@
+{#
+/**
+ * @file
+ * Default theme implementation for an 'input' textfield form element.
+ *
+ * This template overrides the default input.html.twig to render a Carbon Web Component.
+ *
+ * @ingroup themeable
+ */
+#}
+
+{% set component_props = {
+  id: attributes.id|default(null),
+  placeholder: attributes.placeholder|default(''),
+  value: attributes.value|default(''),
+  required: attributes.required|default(false),
+  label: title|default('Input Label'),
+  helper_text: description|default(''),
+  invalid_text: invalid_text|default(null),
+  attributes: attributes.without('id', 'placeholder', 'value', 'required'),
+  } %}
+
+  {# Only pass the invalid flag if the text is present #}
+  {% if invalid_text is not empty %}
+  {% set component_props = component_props|merge({
+    invalid_text: invalid_text,
+  }) %}
+  {% endif %}
+
+  {{ include('carbon_design_system:text-input', component_props) }}
