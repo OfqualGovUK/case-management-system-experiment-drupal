@@ -1,0 +1,10 @@
+<div{{ attributes.addClass('cds--radio-button-wrapper') }}>
+  {{ children }}
+  {% set label = label|merge({'#attributes': {'class': 'cds--radio-button__label' }}) %}
+  {{ label }}
+  {% if description.content %}
+    <span class="cds--form__helper-text">
+      {{ description.content }}
+    </span>
+  {% endif %}
+</div>

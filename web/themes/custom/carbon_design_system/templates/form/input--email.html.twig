@@ -13,15 +13,12 @@
 
 {%
   set classes = [
-    'cds--text-input',
-    'cds--text-input--md',
-    'cds--layout--size-md',
-    errors ? 'cds--text-input--invalid'
-  ]
+  'cds--text-input',
+  'cds--text-input--md',
+  'cds--layout--size-md',
+  errors ? 'fcds--text-input--invalid'
+]
 %}
 
 <input{{ attributes.addClass(classes) }} />{{ children }}
-
-{% if attributes.placeholder %}
 <div class="cds--form__helper-text">{{ attributes.placeholder }}</div>
-{% endif %}
