@@ -38,12 +38,6 @@ web/themes/README.txt
 /autoload.php
 /console
 
-# -----------------------------------------------------------------------------
-# GENERATED AND BUILD FILES
-# These are files created during runtime, installation, or build processes.
-# -----------------------------------------------------------------------------
-/web/themes/custom/carbon_design_system/assets
-
 # Private and public file system directories:
 /web/sites/*/files/
 !/web/sites/*/files/.gitkeep
