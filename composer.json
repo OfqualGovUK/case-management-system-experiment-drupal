@@ -62,7 +62,8 @@
             "DrupalFinder\\Composer\\DrupalFinder::postAutoloadDump"
         ],
         "lint": "phpcs",
-        "lint-fix": "phpcbf"
+        "lint-fix": "phpcbf",
+        "prepare": "npx husky install"
     },
     "extra": {
         "installer-paths": {
