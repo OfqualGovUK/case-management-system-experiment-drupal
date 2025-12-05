@@ -3,8 +3,11 @@ FROM serversideup/php:8.4-fpm-apache-debian
 USER root
 
 RUN apt-get update && apt-get install -y \
-    git unzip libicu-dev libpng-dev libjpeg-dev libxml2-dev \
+    git unzip curl gnupg \
+    libicu-dev libpng-dev libjpeg-dev libxml2-dev \
     libonig-dev pkg-config default-mysql-client \
+ && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+ && apt-get install -y nodejs \
  && docker-php-ext-install intl gd mbstring pdo pdo_mysql xml \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
