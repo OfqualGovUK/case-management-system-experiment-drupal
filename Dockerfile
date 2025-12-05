@@ -1,17 +1,25 @@
-FROM crofqappdev1.azurecr.io/ofqual/drupal-bitnami:latest
+FROM serversideup/php:8.4-fpm-apache-debian
 
 USER root
 
-COPY composer.json composer.lock /opt/bitnami/drupal/
-RUN cd /opt/bitnami/drupal && composer install --no-dev --no-interaction
+RUN apt-get update && apt-get install -y \
+    git unzip libicu-dev libpng-dev libjpeg-dev libxml2-dev \
+    libonig-dev pkg-config default-mysql-client \
+ && docker-php-ext-install intl gd mbstring pdo pdo_mysql xml \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY config /opt/bitnami/drupal/sites/default/files/config/
-COPY web/sites/default/settings.php /opt/bitnami/drupal/sites/default/settings.php
-COPY web/modules/custom /opt/bitnami/drupal/modules/custom/
-COPY web/themes/custom /opt/bitnami/drupal/themes/custom/
+WORKDIR /var/www/html
 
-COPY config-sync.sh /docker-entrypoint-init.d/config-sync.sh
-RUN chmod +x /docker-entrypoint-init.d/config-sync.sh
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN chown -R 1001:0 /opt/bitnami/drupal
-USER 1001
+COPY composer.json composer.lock ./
+COPY ./web ./web
+COPY ./config/sync ./config/sync
+
+RUN mkdir -p web/sites/default/files && chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
+
+USER www-data
+
+RUN composer install --no-dev --optimize-autoloader --prefer-dist
+
+COPY --chmod=755 entrypoint.sh /etc/entrypoint.d/10-drupal-setup.sh
