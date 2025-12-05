@@ -1,0 +1,20 @@
+uuid: f8141447-0142-4198-8277-ab65a0736cb5
+langcode: en-gb
+status: true
+dependencies:
+  theme:
+    - carbon_design_system
+_core:
+  default_config_hash: fNwDdW063tk_ktzSWzZVeQS9wzvLooVO280BQ9WrsIs
+id: carbon_design_system_page_title
+theme: carbon_design_system
+region: content
+weight: 0
+provider: null
+plugin: page_title_block
+settings:
+  id: page_title_block
+  label: 'Page title'
+  label_display: '0'
+  provider: core
+visibility: {  }

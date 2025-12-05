@@ -1,0 +1,56 @@
+{#
+/**
+ * @file
+ * Theme override for a form element.
+ *
+ * @see template_preprocess_form_element()
+ */
+#}
+
+{# form-element.html.twig (Final Template) #}
+
+{%
+  set classes = [
+  'js-form-item',
+  'form-item',
+  'js-form-type-' ~ type|clean_class,
+  'form-type-' ~ type|clean_class,
+  'js-form-item-' ~ name|clean_class,
+  'form-item-' ~ name|clean_class,
+  type in ['checkbox', 'radio'] ? 'form-type--' ~ type|clean_class,
+  title_display not in ['after', 'before'] ? 'form-element-label--visually-hidden',
+  errors ? 'form-item--error',
+  element.required ? 'form-item--required',
+]
+%}
+<div{{ attributes.addClass(classes) }}>
+
+  {% if input_prefix or input_suffix %}
+  <div class="input-group">
+    {% endif %}
+
+    {% if input_prefix %}
+      <span class="input-group__prefix">{{ input_prefix }}</span>
+    {% endif %}
+
+    {% set title_for_input = element['#title']|striptags|trim|default(attributes.id) %}
+    {% set description_for_input = element['#description']|default(null) %}
+    {% set error_message_for_input = errors ? errors|striptags|trim : null %}
+
+    {{ children }}
+
+    {% if input_suffix %}
+      <span class="input-group__suffix">{{ input_suffix }}</span>
+    {% endif %}
+
+    {% if input_prefix or input_suffix %}
+  </div>
+  {% endif %}
+
+  {% if input_suffix %}
+  {% endif %}
+  {% if input_prefix or input_suffix %}
+  {% endif %}
+
+
+</div>

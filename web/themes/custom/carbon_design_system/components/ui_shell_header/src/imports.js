@@ -1,0 +1,10 @@
+import '@carbon/web-components/es/components/ui-shell/header.js';
+import '@carbon/web-components/es/components/ui-shell/header-global-action.js';
+import '@carbon/web-components/es/components/ui-shell/header-menu.js';
+import '@carbon/web-components/es/components/ui-shell/header-menu-button.js';
+import '@carbon/web-components/es/components/ui-shell/header-menu-item.js';
+import '@carbon/web-components/es/components/ui-shell/header-name.js';
+import '@carbon/web-components/es/components/ui-shell/header-nav.js';
+import '@carbon/web-components/es/components/ui-shell/header-nav-item.js';
+import '@carbon/web-components/es/components/ui-shell/header-panel.js';
+import '@carbon/web-components/es/components/ui-shell/header-side-nav-items.js';

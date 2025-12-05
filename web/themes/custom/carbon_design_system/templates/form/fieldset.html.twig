@@ -1,0 +1,39 @@
+{%
+  set classes = [
+    'js-form-item',
+    'form-item',
+    'js-form-wrapper',
+    'form-wrapper',
+  ]
+%}
+<div class="govuk-form-group{% if errors %} govuk-form-group--error{% endif %}">
+  <fieldset{{ attributes.addClass(classes) }}>
+    {%
+      set legend_span_classes = [
+        'fieldset-legend',
+        required ? 'js-form-required',
+        required ? 'form-required',
+        'govuk-fieldset__heading',
+      ]
+    %}
+    {#  Always wrap fieldset legends in a SPAN for CSS positioning. #}
+    <legend{{ legend.attributes.addClass('cds--label') }}>
+      <span{{ legend_span.attributes.addClass(legend_span_classes).removeClass('visually-hidden') }}>{{ legend.title }}</span>
+    </legend>
+      {% if description.content %}
+        <div{{ description.attributes.addClass('cds--form__helper-text') }}>{{ description.content }}</div>
+      {% endif %}
+      {% if errors %}
+        <span class="cds--form-requirement">
+          {{ errors }}
+        </span>
+      {% endif %}
+      {% if prefix %}
+        <span class="field-prefix">{{ prefix }}</span>
+      {% endif %}
+      {{ children }}
+      {% if suffix %}
+        <span class="field-suffix">{{ suffix }}</span>
+      {% endif %}
+  </fieldset>
+</div>

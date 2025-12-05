@@ -1,0 +1,16 @@
+uuid: eecf3b01-7545-42be-b6c8-7034d2619cae
+langcode: en-gb
+status: false
+dependencies: {  }
+id: production
+label: Production
+description: 'Config exclusively for the Production environment'
+weight: 0
+stackable: false
+no_patching: false
+storage: folder
+folder: sync-prod
+module: {  }
+theme: {  }
+complete_list: {  }
+partial_list: {  }

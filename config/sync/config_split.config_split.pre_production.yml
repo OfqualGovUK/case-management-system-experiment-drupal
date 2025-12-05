@@ -1,0 +1,16 @@
+uuid: 5cf9c241-a441-45f7-9a6b-7e5d2484acc0
+langcode: en-gb
+status: false
+dependencies: {  }
+id: pre_production
+label: Pre-Production
+description: 'Config specifically for the Pre-Production environment'
+weight: 0
+stackable: false
+no_patching: false
+storage: folder
+folder: sync-preprod
+module: {  }
+theme: {  }
+complete_list: {  }
+partial_list: {  }

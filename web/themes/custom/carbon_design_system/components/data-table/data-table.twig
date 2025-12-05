@@ -1,0 +1,39 @@
+{% set component_attributes = attributes %}
+
+{% if headers and rows %}
+
+  <cds-table {{ component_attributes }}>
+
+    <cds-table-head>
+      <cds-table-header-row>
+        {% for header in headers %}
+          <cds-table-header-cell
+            data-key="{{ header.key }}"
+            {% if header.sortable %}
+              sortable
+              sort-direction="none" {# Required for interactive sorting #}
+            {% endif %}
+          >
+            {{ header.label }}
+          </cds-table-header-cell>
+        {% endfor %}
+      </cds-table-header-row>
+    </cds-table-head>
+
+    <cds-table-body>
+      {% for row in rows %}
+        <cds-table-row>
+          {% for header in headers %}
+            <cds-table-cell>
+              {{ row[header.key] }}
+            </cds-table-cell>
+          {% endfor %}
+        </cds-table-row>
+      {% endfor %}
+    </cds-table-body>
+
+  </cds-table>
+
+{% else %}
+  <p>Error: Data table component requires header and row data.</p>
+{% endif %}
