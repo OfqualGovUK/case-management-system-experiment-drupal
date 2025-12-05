@@ -1,0 +1,19 @@
+_core:
+  default_config_hash: 0EkBHyI-hmhBnD__JO16ZVEnuPnCECTEl5IeNi1rBR8
+not_found_exception_patterns:
+  - "/.*\\.aspx/\r"
+  - "/.*\\.asp/\r"
+  - "/.*\\.jsp/\r"
+  - "/\\/blog_edit\\.php/\r"
+  - "/\\/blogs\\.php/\r"
+  - "/\\/wp-admin.*/\r"
+  - "/\\/wp-login.*/\r"
+  - "/\\/my_blogs/\r"
+  - "/\\/system\\/.*\\.php/\r"
+  - "/.*systopice.*/\r"
+  - "/.*login.json/\r"
+  - '/\/episerver.*/'
+whitelisted_ips:
+  - ''
+flood_threshold: 0
+flood_window: 3600

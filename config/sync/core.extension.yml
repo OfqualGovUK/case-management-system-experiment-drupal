@@ -5,17 +5,22 @@ module:
   admin_toolbar_tools: 0
   announcements_feed: 0
   automated_cron: 0
+  ban: 0
   basic_auth: 0
   big_pipe: 0
   block: 0
   breakpoint: 0
   ckeditor5: 0
   config: 0
+  config_split: 0
   contextual: 0
   datetime: 0
   dblog: 0
   dynamic_page_cache: 0
   editor: 0
+  environment_indicator: 0
+  environment_indicator_toolbar: 0
+  environment_indicator_ui: 0
   field: 0
   field_layout: 0
   field_ui: 0
@@ -39,15 +44,17 @@ module:
   page_cache: 0
   path: 0
   path_alias: 0
+  perimeter: 0
   rest: 0
   search: 0
+  seckit: 0
+  security_review: 0
   serialization: 0
   shortcut: 0
   system: 0
   taxonomy: 0
   text: 0
   toolbar: 0
-  update: 0
   user: 0
   views_ui: 0
   externalauth: 10
