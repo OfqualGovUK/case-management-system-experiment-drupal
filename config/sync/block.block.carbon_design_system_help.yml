@@ -1,0 +1,22 @@
+uuid: 7ce81aad-4c4b-462a-9a16-bdbfd7213e00
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - help
+  theme:
+    - carbon_design_system
+_core:
+  default_config_hash: jccFSSVqV0WCDb6NtML1VWAWTtDbZ-zn5YgTRMgMrIM
+id: carbon_design_system_help
+theme: carbon_design_system
+region: header
+weight: 0
+provider: null
+plugin: help_block
+settings:
+  id: help_block
+  label: Help
+  label_display: '0'
+  provider: help
+visibility: {  }

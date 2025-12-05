@@ -1,0 +1,11 @@
+<div{{ attributes.addClass('cds--form-item cds--checkbox-wrapper') }}>
+  {{ children }}
+  {% set label = label|merge({'#attributes': {'class': 'cds--checkbox-label' }}) %}
+  {{ label }}
+  {% if description.content %}
+    <span class="cds--form__helper-text">
+      {{ description.content }}
+    </span>
+  {% endif %}
+</div>
+
