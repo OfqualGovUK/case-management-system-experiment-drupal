@@ -15,7 +15,7 @@
     "@carbon/icon-helpers": "^10.66.0",
     "@carbon/icons": "^11.68.0",
     "@carbon/styles": "^1.90.0",
-    "@carbon/themes": "^11.60.0",
+    "@carbon/themes": "^11.61.0",
     "@carbon/web-components": "^2.38.0"
   }
 }
