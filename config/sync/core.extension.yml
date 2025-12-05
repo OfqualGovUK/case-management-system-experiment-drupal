@@ -9,7 +9,6 @@ module:
   big_pipe: 0
   block: 0
   breakpoint: 0
-  carbon_design_system_web_components: 0
   ckeditor5: 0
   config: 0
   contextual: 0
@@ -24,8 +23,8 @@ module:
   filter: 0
   help: 0
   image: 0
+  inline_form_errors: 0
   jsonapi: 0
-  key: 0
   language: 0
   layout_discovery: 0
   link: 0
@@ -48,12 +47,6 @@ module:
   taxonomy: 0
   text: 0
   toolbar: 0
-  ui_patterns: 0
-  ui_patterns_blocks: 0
-  ui_patterns_field: 0
-  ui_patterns_field_formatters: 0
-  ui_patterns_layouts: 0
-  ui_patterns_ui: 0
   update: 0
   user: 0
   views_ui: 0

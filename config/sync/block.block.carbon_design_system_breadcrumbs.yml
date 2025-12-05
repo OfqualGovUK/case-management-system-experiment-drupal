@@ -10,8 +10,8 @@ _core:
   default_config_hash: NjcxOBrPOiK5-38t56DwFBDVY4yer7YSlbRWXFuHe7A
 id: carbon_design_system_breadcrumbs
 theme: carbon_design_system
-region: header
-weight: 0
+region: content
+weight: -1
 provider: null
 plugin: system_breadcrumb_block
 settings:
