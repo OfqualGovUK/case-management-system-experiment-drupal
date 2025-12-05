@@ -60,7 +60,9 @@
         ],
         "post-autoload-dump": [
             "DrupalFinder\\Composer\\DrupalFinder::postAutoloadDump"
-        ]
+        ],
+        "lint": "phpcs",
+        "lint-fix": "phpcbf"
     },
     "extra": {
         "installer-paths": {
@@ -91,7 +93,8 @@
         }
     },
     "require-dev": {
-        "drupal/coder": "8.3",
-        "squizlabs/php_codesniffer": "3.13"
+        "drupal/coder": "^8.3",
+        "slevomat/coding-standard": "^8.19",
+        "squizlabs/php_codesniffer": "^3.7"
     }
 }
