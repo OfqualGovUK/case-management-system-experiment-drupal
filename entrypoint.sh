@@ -1,31 +1,22 @@
 #!/bin/bash
 set -e
 
-DB_HOST="${DRUPAL_DATABASE_HOST}"
-DB_PORT="${DRUPAL_DATABASE_PORT_NUMBER}"
-DB_USER="${DRUPAL_DATABASE_USER}"
-DB_PASS="${DRUPAL_DATABASE_PASSWORD}"
-DB_NAME="${DRUPAL_DATABASE_NAME}"
-
-MAX_RETRIES="${MAX_RETRIES:-60}"
-RETRY_INTERVAL="${RETRY_INTERVAL:-10}"
-
 echo "[INFO] Starting Drupal entrypoint script"
 
 # Check MySQL readiness
 echo "[INFO] Waiting for MySQL to be ready..."
-for i in $(seq 1 "${MAX_RETRIES}"); do
+for i in $(seq 1 10); do
     php -r "
-    \$dsn = 'mysql:host=${DB_HOST};port=${DB_PORT}';
+    \$dsn = 'mysql:host=${DRUPAL_DATABASE_HOST};port=${DRUPAL_DATABASE_PORT_NUMBER}';
     try {
-        new PDO(\$dsn, '${DB_USER}', '${DB_PASS}');
+        new PDO(\$dsn, '${DRUPAL_DATABASE_USER}', '${DRUPAL_DATABASE_PASSWORD}');
         exit(0);
     } catch (PDOException \$e) {
         exit(1);
     }
     " && echo "[INFO] MySQL is ready" && break || echo "[WARN] Attempt $i: MySQL not ready"
-    sleep "${RETRY_INTERVAL}"
-    if [ "$i" -eq "${MAX_RETRIES}" ]; then
+    sleep 10
+    if [ "$i" -eq 10 ]; then
         echo "[ERROR] MySQL did not become ready in time"
         exit 1
     fi
@@ -42,17 +33,12 @@ if [ "${BOOTSTRAP}" != "Successful" ]; then
     if [ -d config/sync ] && [ "$(ls -A config/sync)" ]; then
         echo "[INFO] Using existing configuration"
         vendor/bin/drush site:install --existing-config \
-            --db-url="mysql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}" -y
+        --db-url="mysql://${DRUPAL_DATABASE_USER}:${DRUPAL_DATABASE_PASSWORD}@${DRUPAL_DATABASE_HOST}:${DRUPAL_DATABASE_PORT_NUMBER}/${DRUPAL_DATABASE_NAME}" \
+        --account-name="${DRUPAL_USERNAME}" \
+        --account-pass="${DRUPAL_PASSWORD}" \
+        --account-mail="${DRUPAL_EMAIL}" \
+        -y
         echo "[INFO] Drupal installation with existing config completed"
-
-        echo "[INFO] Updating password for user: ${DRUPAL_USERNAME}"
-        vendor/bin/drush user:password "${DRUPAL_USERNAME}" "${DRUPAL_PASSWORD}"
-        if [ $? -eq 0 ]; then
-            echo "[SUCCESS] Password updated for user: ${DRUPAL_USERNAME}"
-        else
-            echo "[ERROR] Failed to update password for user: ${DRUPAL_USERNAME}"
-            exit 1
-        fi
     else
         echo "[ERROR] config/sync directory is missing or empty. Cannot install with existing config."
         exit 1
@@ -61,13 +47,23 @@ else
     echo "[INFO] Drupal already installed"
 fi
 
-# Import configuration if exists
+# Sync Drupal config
 if [ -d config/sync ] && [ "$(ls -A config/sync)" ]; then
-    echo "[INFO] Importing Drupal configuration"
-    vendor/bin/drush cim -y || echo "[WARN] Config import failed"
-    echo "[INFO] Configuration import completed"
+    echo "[INFO] Syncing Drupal config"
+    vendor/bin/drush cim -y || echo "[WARN] Sync failed"
+    echo "[INFO] Config sync completed"
 else
-    echo "[WARN] config/sync directory is missing or empty. Skipping config import."
+    echo "[WARN] config/sync missing or empty. Skipping sync."
+fi
+
+# Sync latest Drupal user password
+echo "[INFO] Syncing password for user: ${DRUPAL_USERNAME}"
+vendor/bin/drush user:password "${DRUPAL_USERNAME}" "${DRUPAL_PASSWORD}"
+if [ $? -eq 0 ]; then
+    echo "[INFO] Password synced for user: ${DRUPAL_USERNAME}"
+else
+    echo "[ERROR] Password sync failed for user: ${DRUPAL_USERNAME}"
+    exit 1
 fi
 
 echo "[INFO] Drupal setup complete"
