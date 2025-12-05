@@ -20,7 +20,7 @@
   ]
 %}
 
-<input{{ attributes.addClass(classes) }} />{{ children }}
+<input{{ attributes.addClass(classes) }} {% if errors %}data-invalid="true"{% endif %} />{{ children }}
 
 {% if attributes.placeholder %}
 <div class="cds--form__helper-text">{{ attributes.placeholder }}</div>

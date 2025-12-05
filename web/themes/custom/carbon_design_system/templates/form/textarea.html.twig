@@ -15,7 +15,7 @@
 #}
 
 <div{{ wrapper_attributes.addClass('cds--text-area__wrapper cds--text-area__wrapper--decorator') }}>
-  <textarea{{ attributes.addClass('cds--text-area').removeAttribute('placeholder') }}>{{ value }}</textarea>
+  <textarea{{ attributes.addClass('cds--text-area').removeAttribute('placeholder') }} {% if errors %}data-invalid="true"{% endif %}>{{ value }}</textarea>
 </div>
 
 <span class="cds--form__helper-text">{{ attributes.placeholder }}</span>

@@ -17,3 +17,6 @@ All Carbon Design System live in the components folder, and use the standard SDC
 Each component is defined from components/{{ name }} and requires a {{ name }}.component.yml file that defines all the info for the component, a {{ name }}.twig for the markup and a js file from src/{{ name }}.js which should be the cds es raw file.
 
 The rest of the theme structure follows normal Drupal theme approaches, templates inside the template divided into sub folders by the base / core module it uses.
+
+### Forms
+Form elements are deliberately ignored from the web components approach due to various challenges with getting the correct markup passed to the form.

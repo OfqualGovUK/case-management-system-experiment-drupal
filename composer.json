@@ -1,83 +1,97 @@
 {
-  "name": "ofqualgovuk/case-management-system-experiment-drupal",
-  "description": "PoC Project for Ofqual Case Management",
-  "type": "project",
-  "repositories": [
-    {
-      "type": "composer",
-      "url": "https://packages.drupal.org/8"
-    }
-  ],
-  "require": {
-    "php": "^8.4.0",
-    "composer/installers": "^2.3",
-    "cweagans/composer-patches": "~2.0",
-    "drupal/admin_toolbar": "^3.6",
-    "drupal/coffee": "2.0.1",
-    "drupal/consumers": "^1.22",
-    "drupal/core-composer-scaffold": "^11.2",
-    "drupal/core-project-message": "^11.2",
-    "drupal/core-recipe-unpack": "^11.2",
-    "drupal/core-recommended": "^11.2",
-    "drupal/externalauth": "^2.0",
-    "drupal/openid_connect": "^3.0.0-alpha6",
-    "drupal/simple_oauth": "^6.0",
-    "drupal/ui_patterns": "^2.0",
-    "drush/drush": "^13.6"
-  },
-  "conflict": {
-    "drupal/drupal": "*"
-  },
-  "minimum-stability": "stable",
-  "prefer-stable": true,
-  "config": {
-    "allow-plugins": {
-      "composer/installers": true,
-      "cweagans/composer-patches": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true,
-      "drupal/core-composer-scaffold": true,
-      "drupal/core-project-message": true,
-      "drupal/core-recipe-unpack": true,
-      "php-http/discovery": true,
-      "php-tuf/composer-integration": true,
-      "phpstan/extension-installer": true
-    },
-    "sort-packages": true,
-    "platform": {
-      "php": "8.4.0"
-    },
-    "preferred-install": "dist"
-  },
-  "extra": {
-    "installer-paths": {
-      "web/core": ["type:drupal-core"],
-      "web/libraries/{$name}": ["type:drupal-library"],
-      "web/modules/contrib/{$name}": ["type:drupal-module"],
-      "web/profiles/contrib/{$name}": ["type:drupal-profile"],
-      "web/themes/contrib/{$name}": ["type:drupal-theme"],
-      "drush/contrib/{$name}": ["type:drupal-drush"],
-      "type:drupal-custom-theme": ["type:drupal-custom-theme"]
-    },
-    "drupal-scaffold": {
-      "locations": {
-        "web-root": "web/"
-      },
-      "symlink": false,
-      "overwrite": true,
-      "source": "drupal/core-recommended"
-    },
-    "composer-exit-on-patch-failure": true,
-    "patchLevel": {
-        "drupal/core": "-p2"
-    },
-    "patches": {
-        "drupal/core": {
-            "Add Theme suggestion for messages": "https://www.drupal.org/files/issues/2025-06-20/3456176-138-missing-status-messages-theme-suggestions.patch"
+    "name": "ofqualgovuk/case-management-system-experiment-drupal",
+    "description": "PoC Project for Ofqual Case Management",
+    "type": "project",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
         }
+    ],
+    "require": {
+        "php": "^8.4.0",
+        "composer/installers": "^2.3",
+        "cweagans/composer-patches": "~2.0",
+        "drupal/admin_toolbar": "^3.6",
+        "drupal/coffee": "2.0.1",
+        "drupal/consumers": "^1.22",
+        "drupal/core-composer-scaffold": "^11.2",
+        "drupal/core-project-message": "^11.2",
+        "drupal/core-recipe-unpack": "^11.2",
+        "drupal/core-recommended": "^11.2",
+        "drupal/externalauth": "^2.0",
+        "drupal/openid_connect": "^3.0.0-alpha6",
+        "drupal/simple_oauth": "^6.0",
+        "drupal/ui_patterns": "^2.0",
+        "drush/drush": "^13.6"
+    },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "cweagans/composer-patches": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "drupal/core-composer-scaffold": true,
+            "drupal/core-project-message": true,
+            "drupal/core-recipe-unpack": true,
+            "php-http/discovery": true,
+            "php-tuf/composer-integration": true,
+            "phpstan/extension-installer": true
+        },
+        "sort-packages": true,
+        "platform": {
+            "php": "8.4.0"
+        },
+        "preferred-install": "dist"
+    },
+    "scripts": {
+        "drupal-scaffold": "Drupal\\Composer\\Plugin\\Scaffold\\Handler::scaffold",
+        "post-install-cmd": [
+            "@drupal-scaffold",
+            "cd web/themes/custom/carbon_design_system && npm i && npm run build"
+        ],
+        "post-update-cmd": [
+            "@drupal-scaffold",
+            "cd web/themes/custom/carbon_design_system && npm i && npm run build"
+        ],
+        "post-autoload-dump": [
+            "DrupalFinder\\Composer\\DrupalFinder::postAutoloadDump"
+        ]
+    },
+    "extra": {
+        "installer-paths": {
+            "web/core": ["type:drupal-core"],
+            "web/libraries/{$name}": ["type:drupal-library"],
+            "web/modules/contrib/{$name}": ["type:drupal-module"],
+            "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "web/themes/contrib/{$name}": ["type:drupal-theme"],
+            "drush/contrib/{$name}": ["type:drupal-drush"],
+            "type:drupal-custom-theme": ["type:drupal-custom-theme"]
+        },
+        "drupal-scaffold": {
+            "locations": {
+                "web-root": "web/"
+            },
+            "symlink": false,
+            "overwrite": true,
+            "source": "drupal/core-recommended"
+        },
+        "composer-exit-on-patch-failure": true,
+        "patchLevel": {
+            "drupal/core": "-p2"
+        },
+        "patches": {
+            "drupal/core": {
+                "Add Theme suggestion for messages": "https://www.drupal.org/files/issues/2025-06-20/3456176-138-missing-status-messages-theme-suggestions.patch"
+            }
+        }
+    },
+    "require-dev": {
+        "drupal/coder": "8.3",
+        "squizlabs/php_codesniffer": "3.13"
     }
-  },
-  "require-dev": {
-    "drupal/coder": "8.3",
-    "squizlabs/php_codesniffer": "3.13"
-  }
 }
