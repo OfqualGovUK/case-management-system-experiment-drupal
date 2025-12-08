@@ -36,7 +36,7 @@ to follow
 #### Dev Environment
 to follow
 
-#### Pre Production Environm,ent
+#### Pre Production Environment
 to follow
 
 #### Production
