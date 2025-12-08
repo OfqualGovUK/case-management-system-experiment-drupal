@@ -3,6 +3,7 @@
 namespace Drupal\cases\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
+
 /**
  * Provides a 'Cases Table' block.
  *
@@ -11,10 +12,12 @@ use Drupal\Core\Block\BlockBase;
  *   admin_label = @Translation("Cases Table Block")
  * )
  */
-class CasesTableBlock extends BlockBase
-{
-  public function build()
-  {
+class CasesTableBlock extends BlockBase {
+
+  /**
+   *
+   */
+  public function build() {
     $cases = [
       [
         'cells' => ['1', 'Recognition application', 'Acorn Awards', 'Received', 'Davina Forrest', '2025-10-08'],
@@ -36,9 +39,9 @@ class CasesTableBlock extends BlockBase
         'props' => [
           'headers' => $header,
           'rows' => $cases,
-          'searchable' => true,
-          'sortable' => true,
-          'paginated' => true,
+          'searchable' => TRUE,
+          'sortable' => TRUE,
+          'paginated' => TRUE,
           'page_size' => 10,
           'page_sizes' => [10, 20, 50],
           'column_types' => ['string', 'string', 'string', 'string', 'date', 'string', 'string'],
@@ -46,4 +49,5 @@ class CasesTableBlock extends BlockBase
       ],
     ];
   }
+
 }

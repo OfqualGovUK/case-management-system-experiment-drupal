@@ -1,0 +1,49 @@
+{#
+/**
+ * @file
+ * Theme override for status messages.
+ *
+ * Displays status, error, and warning messages, grouped by type.
+ *
+ * Available variables:
+ * - message_list: List of messages to be displayed, grouped by type.
+ * - status_headings: List of all status types.
+ * - attributes: HTML attributes for the element, including:
+ *   - class: HTML classes.
+ */
+#}
+
+<div data-drupal-messages class="messages-list">
+
+    {% for type, messages in message_list %}
+
+      {% if type == 'error' %}
+        {% set message_type = 'error' %}
+      {% endif %}
+
+      {% if type == 'status' %}
+        {% set message_type = 'success' %}
+      {% endif %}
+
+      {% set message_content %}
+        {% if messages|length > 1 %}
+          <ul class="messages__list">
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          {{ messages|first }}
+        {% endif %}
+      {% endset %}
+
+      {{ include('carbon_design_system:notification', {
+        kind: message_type,
+        headline: status_headings[type],
+        subtitle: message_content,
+      }) }}
+
+      {% set attributes = attributes.removeClass(classes) %}
+    {% endfor %}
+
+</div>

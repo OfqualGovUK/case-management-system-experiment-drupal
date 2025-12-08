@@ -2,6 +2,6 @@ name: 'Ofqual Custom Notify'
 type: module
 description: 'Custom notifications via external API'
 core_version_requirement: ^11
-package: Custom
+package: Ofqual
 dependencies:
   - drupal:user

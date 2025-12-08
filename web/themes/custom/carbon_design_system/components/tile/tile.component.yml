@@ -1,0 +1,17 @@
+name: Tile
+description: Carbon Design System Tile component.
+status: stable
+props:
+  type: object
+  properties:
+    title:
+      type: string
+      title: 'Title'
+    modifier_class:
+      type: string
+      title: 'Classes'
+slots:
+  content:
+    title: Content
+    description: 'The main body content.'
+    modifier_class: 'rob'
