@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @file
+ */
+
 use Drupal\user\UserInterface;
 
 /**
@@ -22,7 +26,7 @@ function ofqual_custom_notify_user_login(UserInterface $account) {
   \Drupal::messenger()->addMessage(t('Welcome back, @username!', ['@username' => $accountName]));
   \Drupal::logger('ofqual_custom_notify')->notice('User @username has logged in.', ['@username' => $accountName]);
 
-  // Required environment variables
+  // Required environment variables.
   $requiredEnvVars = [
     'NOTIFICATION_SOURCE_ID',
     'NOTIFICATION_SOURCE_UPN',
@@ -39,7 +43,7 @@ function ofqual_custom_notify_user_login(UserInterface $account) {
     $apiCredentials[strtolower($envVar)] = $value;
   }
 
-  // Prepare notification payload
+  // Prepare notification payload.
   $notificationPayload = [
     'SourceId'      => $apiCredentials['notification_source_id'],
     'SourceModule'  => 1,
@@ -48,7 +52,7 @@ function ofqual_custom_notify_user_login(UserInterface $account) {
     'TargetUpn'     => $targetUpn,
   ];
 
-  // Send notification using the service
+  // Send notification using the service.
   $notificationService = \Drupal::service('ofqual_custom_notify.notification_service');
   $notificationService->send($notificationPayload);
 }

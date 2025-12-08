@@ -1,0 +1,8 @@
+parameters:
+  level: 5  # From 0 (permissive) to 9 (strict)
+  paths:
+    - web/modules/custom
+    - web/themes/custom/carbon_design_system
+    - web/sites/default
+  excludePaths:
+    - web/sites/default/files/*
