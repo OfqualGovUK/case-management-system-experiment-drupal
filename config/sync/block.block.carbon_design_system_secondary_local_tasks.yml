@@ -8,8 +8,8 @@ _core:
   default_config_hash: 2L0geP-ixCbCkEpW6BVF6H7vDUZN4ea07_Y9CociQm4
 id: carbon_design_system_secondary_local_tasks
 theme: carbon_design_system
-region: header
-weight: 0
+region: content
+weight: -3
 provider: null
 plugin: local_tasks_block
 settings:

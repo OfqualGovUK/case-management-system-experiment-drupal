@@ -17,7 +17,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock ./
 COPY ./web ./web
-COPY ./config/sync ./config/sync
+COPY ./config ./config
 
 RUN mkdir -p web/sites/default/files && chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
 

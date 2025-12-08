@@ -1,0 +1,20 @@
+uuid: 096b9ebf-ca78-4edf-91c3-c700a6ddc003
+langcode: en-gb
+status: false
+dependencies: {  }
+id: dev
+label: Dev
+description: 'Config especially for local development and the DEV environment'
+weight: 0
+stackable: false
+no_patching: false
+storage: folder
+folder: ../config/sync-dev
+module:
+  devel: 0
+  diff: 0
+  update: 0
+  devel_generate: 0
+theme: {  }
+complete_list: {  }
+partial_list: {  }

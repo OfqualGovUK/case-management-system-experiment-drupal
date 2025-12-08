@@ -23,8 +23,8 @@ composer run lint-fix
 
 ### Getting started locally
 1. Clone this repo
-2. Have a suitbale Drupal friendly setup ready (e.g ddev or docksal)
-3. Run two simple commands
+2. Have a suitable Drupal friendly setup ready (e.g ddev or docksal)
+3. Run two simple commands to install the dependencies and import the config
 ```
 composer install
 drush si --existing-config
@@ -36,7 +36,7 @@ to follow
 #### Dev Environment
 to follow
 
-#### Pre Production Environm,ent
+#### Pre Production Environment
 to follow
 
 #### Production
