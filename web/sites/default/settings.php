@@ -857,9 +857,10 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 
 $config['openid_connect.client.entraid']['settings']['client_id'] = getenv('OPENID_CLIENT_ID');
 $config['openid_connect.client.entraid']['settings']['client_secret'] = getenv('OPENID_CLIENT_SECRET');
-$config['openid_connect.client.entraid']['settings']['authorization_endpoint'] = getenv('OPENID_AUTH_ENDPOINT');
-$config['openid_connect.client.entraid']['settings']['token_endpoint'] = getenv('OPENID_TOKEN_ENDPOINT');
 $config['openid_connect.client.entraid']['settings']['userinfo_endpoint'] = getenv('OPENID_USERINFO_ENDPOINT');
+$tenantId = getenv('AZURE_TENANT_ID');
+$config['openid_connect.client.entraid']['settings']['authorization_endpoint'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/authorize';
+$config['openid_connect.client.entraid']['settings']['token_endpoint'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/token';
 
 /**
  * Environment settings override.
