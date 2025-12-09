@@ -2,96 +2,73 @@
 /**
  * @file
  * Carbon Design System theme file
+ * * Contains all theme-level preprocess and alter hooks.
  */
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Menu\MenuTreeParameters;
+
+// ... (All other hooks remain the same) ...
 
 /**
- * Implements hook_form_alter().
+ * Implements hook_preprocess_HOOK() for page template.
+ * * Fetches the 'main' and 'account' menus and combines the links.
  */
-function carbon_design_system_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  $form['#attributes']['novalidate'] = 'novalidate';
+function carbon_design_system_preprocess_page(array &$variables) {
+  $config = \Drupal::config('system.site');
+  $variables['site_name'] = $config->get('name');
+
+  $main_links = carbon_design_system_get_menu_links('main');
+  $account_links = carbon_design_system_get_menu_links('account');
+  $variables['header_links'] = array_merge($main_links, $account_links);
+
 }
 
 /**
- * Implements hook_theme_suggestions_HOOK_alter().
+ * Helper function to retrieve and format menu links for the Carbon UI Shell.
+ *
+ * @param string $menu_name
+ * The machine name of the menu to load (e.g., 'main').
+ * @return array
+ * An array of links formatted for the SDC component.
  */
-function carbon_design_system_theme_suggestions_form_element_alter(array &$suggestions, array &$variables) {
-  $element = $variables['element'];
-  if (isset($element['#type'])) {
-    $suggestions[] = $variables['theme_hook_original'] . '__' . $element['#type'];
-  }
-}
+function carbon_design_system_get_menu_links(string $menu_name): array {
+  // Use the Drupal service to get the menu tree parameters.
+  $menu_tree = \Drupal::menuTree();
+  $parameters = $menu_tree->getCurrentRouteMenuTreeParameters($menu_name);
 
-/**
- * Implements hook_preprocess_HOOK() for input templates.
- */
-function carbon_design_system_preprocess_input(&$variables) {
-// Check if the current element has a parent render array.
-  if (isset($variables['element'])) {
-    $element = $variables['element'];
+  // Load the menu tree.
+  $tree = $menu_tree->load($menu_name, $parameters);
 
-    if (!empty($element['#errors'])) {
+  // Transform the tree to the render array structure.
+  $manipulators = [
+    ['callable' => 'menu.default_tree_manipulators:checkAccess'],
+    ['callable' => 'menu.default_tree_manipulators:flatten'],
+  ];
+  $tree = $menu_tree->transform($tree, $manipulators);
 
-      $variables['errors'] = $element['#errors'];
+  $links = [];
 
+  // Iterate over the flat menu tree to build the SDC link array.
+  foreach ($tree as $item) {
+    if (!$item->access->isAllowed()) {
+      continue;
     }
-  }
-}
 
-/**
- * Implements hook_preprocess_fieldset().
- */
-function carbon_design_system_preprocess_fieldset(array &$variables) {
+    $link = $item->link;
+    $url = $link->getUrlObject();
+    $options = $url->getOptions();
 
-  $variables['child_count'] = isset($variables['element']['#options']) ?
-    count($variables['element']['#options']) : 0;
+    // Check for the 'is-active' class set by Drupal's menu system.
+    $isActive = (bool) in_array('is-active', $options['attributes']['class'] ?? []);
 
-  // Get the form element.
-  $element = &$variables['element'];
-
-  // Pass elements disabled status to template.
-  $variables['disabled'] = !empty($element['#attributes']['disabled']) ?
-    $element['#attributes']['disabled'] : NULL;
-
-  // Initiate errors.
-  $variables['errors'] = NULL;
-
-  // Make {{ errors }} available in template file.
-  if (!empty($element['#errors']) && empty($element['#error_use_parent'])) {
-    $variables['errors'] = $element['#errors'];
+    $links[] = [
+      'title' => $link->getTitle(),
+      // Use the URI for the URL.
+      'url' => $url->toString(),
+      'is_active' => $isActive,
+    ];
   }
 
-}
-
-/**
- * Implements hook_preprocess_textarea().
- */
-function carbon_design_system_preprocess_textarea(array &$variables) {
-  if (isset($variables['element']['#counter_type'])) {
-    $variables['counter'] = $variables['element']['#counter_maximum'];
-  }
-}
-
-/**
- * Implements hook_preprocess_form_element().
- */
-function carbon_design_system_preprocess_form_element(array &$variables) {
-
-  // Get the form element.
-  $element = &$variables['element'];
-
-  // Pass elements disabled status to template.
-  $variables['disabled'] = !empty($element['#attributes']['disabled']) ?
-    $element['#attributes']['disabled'] : NULL;
-
-  // Initiate errors.
-  $variables['errors'] = NULL;
-  $variables['rw'] = 'hello rob';
-
-  // Make {{ errors }} available in template file.
-  if (!empty($element['#errors']) && empty($element['#error_use_parent'])) {
-    $variables['errors'] = $element['#errors'];
-  }
-
+  return $links;
 }
