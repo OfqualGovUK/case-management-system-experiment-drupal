@@ -10,7 +10,9 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@playwright/test": "^1.57.0",
+    "axe-html-reporter": "^2.2.11",
     "playwright": "^1.57.0"
   }
 }
