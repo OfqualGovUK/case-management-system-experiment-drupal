@@ -19,4 +19,4 @@ $config['config_split.config_split.dev']['status'] = TRUE;
  */
 $config['environment_indicator.indicator']['bg_color'] = '#004d40';
 $config['environment_indicator.indicator']['fg_color'] = '#fde4c4';
-$config['environment_indicator.indicator']['name'] = 'Ofqual DDEV';
+$config['environment_indicator.indicator']['name'] = 'Ofqual Development';
