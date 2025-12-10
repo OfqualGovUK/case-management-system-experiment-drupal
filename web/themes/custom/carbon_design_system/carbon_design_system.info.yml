@@ -9,7 +9,7 @@ libraries:
   - carbon_design_system/global
 regions:
   header: 'Header'
-  primary_menu: 'Primary menu'
+  navigation: 'Primary menu'
   content: 'Content'
   footer: 'Footer'
 dependencies:

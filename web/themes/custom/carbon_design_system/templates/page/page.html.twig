@@ -1,11 +1,8 @@
+
 {{ include ('carbon_design_system:ui_shell_header', {
-  site_name: 'Ofqual Case Management',
+  site_name: site_name,
   is_authenticated: logged_in,
-  links: [
-    { title: 'Home', url: path('<front>'), is_active: true },
-    { title: 'Cases', url: 'cases' },
-    { title: 'Reports', url: 'reports' },
-  ]
+  links: header_links
 }) }}
 
 <div id="content-area">
