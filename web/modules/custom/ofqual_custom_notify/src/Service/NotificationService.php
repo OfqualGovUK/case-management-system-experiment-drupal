@@ -10,8 +10,7 @@ use Drupal\Component\Serialization\Json;
 /**
  * Provides a service to send notifications via external API.
  */
-class NotificationService
-{
+class NotificationService {
 
   /**
    * The HTTP client.
@@ -37,7 +36,7 @@ class NotificationService
    */
   public function __construct(
     ClientInterface $httpClient,
-    LoggerChannelFactoryInterface $loggerFactory
+    LoggerChannelFactoryInterface $loggerFactory,
   ) {
     $this->httpClient = $httpClient;
     $this->logger = $loggerFactory->get('ofqual_custom_notify');
@@ -52,8 +51,7 @@ class NotificationService
    * @return bool
    *   TRUE if the notification was sent successfully, FALSE otherwise.
    */
-  public function send(array $notificationPayload): bool
-  {
+  public function send(array $notificationPayload): bool {
     try {
       $requiredEnvVars = [
         'NOTIFICATION_CLIENT_ID',
@@ -61,7 +59,7 @@ class NotificationService
         'NOTIFICATION_GRANT_TYPE',
         'NOTIFICATION_SCOPE',
         'NOTIFICATION_API_URL',
-        'AZURE_TENANT_ID'
+        'AZURE_TENANT_ID',
       ];
 
       $apiCredentials = [];
@@ -75,7 +73,7 @@ class NotificationService
         $apiCredentials[strtolower($envVar)] = $value;
       }
 
-      // Get access token
+      // Get access token.
       $accessTokenResponse = $this->httpClient->post('https://login.microsoftonline.com/' . $apiCredentials['azure_tenant_id'] . '/oauth2/v2.0/token', [
         'form_params' => [
           'client_id'     => $apiCredentials['notification_client_id'],
@@ -91,7 +89,7 @@ class NotificationService
         return FALSE;
       }
 
-      // Send notification
+      // Send notification.
       $notificationResponse = $this->httpClient->post($apiCredentials['notification_api_url'] . '/notifications', [
         'json' => $notificationPayload,
         'timeout' => 10,
@@ -104,9 +102,11 @@ class NotificationService
 
       $this->logger->notice('Notification sent successfully.');
       return $notificationResponse->getStatusCode() === 200;
-    } catch (\Exception $exception) {
+    }
+    catch (\Exception $exception) {
       $this->logger->error('Notification sending failed: @message', ['@message' => $exception->getMessage()]);
       return FALSE;
     }
   }
+
 }

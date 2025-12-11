@@ -1,6 +1,6 @@
 # Ofqual Custom Notify
 
-## INTRODUCTION
+## Introduction
 
 The Ofqual Custom Notify module allows Drupal to send notifications
 to the Ofqual Notifications API.
@@ -12,7 +12,7 @@ is triggered.
 
 Secrets are never stored in configuration or the database.
 
-## REQUIREMENTS
+## Requirements
 
 * Drupal 11 core
 * PHP 8.2 or higher
@@ -21,19 +21,18 @@ Secrets are never stored in configuration or the database.
 
 No additional modules or libraries are required.
 
-## INSTALLATION
+## Installation
 
 Install Ofqual Custom Notify using the standard Drupal installation method.
 
 1. Place the module in your site's `modules/custom/` directory.
 2. Enable dependencies and this module:
+```
+ drush en key ofqual_custom_notify -y
+ drush cr
+ ```
 
-
-   drush en key ofqual_custom_notify -y
-   drush cr
-
-
-## CONFIGURATION
+## Configuration
 
 ### Key file
 
@@ -46,7 +45,7 @@ Example path:
 
 The JSON file must define these fields:
 
-json
+```json
 {
   "client_id": "<CLIENT_ID>",
   "client_secret": "<CLIENT_SECRET>",
@@ -58,28 +57,31 @@ json
   "source_upn": "<SOURCE_UPN>",
   "target_upn": "<TARGET_UPN>"
 }
+```
 
 ### Settings
 
-Add the following to your `sites/default/settings.php` file:
+Add the following to your 'sites/default/settings.php' file:
 
+```
 $settings['ofqual_notify_json'] = '/var/www/html/keys/ofqual_api_credentials.json';
+```
 
 Do not commit this file to version control.
 Add /keys/ to your .gitignore.
 
-## USAGE
+## Usage
 
 * The module reads configuration from the specified JSON file.
 * Sends POST requests with notification payloads to the API endpoint.
 * Logs success and failure messages in Drupal’s log.
 
-## SECURITY
+## Security
 
 * Keep key files outside of webroot.
 * Never log secrets or sensitive data.
 
-## MAINTAINERS
+## Maintainers
 
 * Module: Ofqual Custom Notify (`ofqual_custom_notify`)
 * Maintainer: Ofqual Drupal Team

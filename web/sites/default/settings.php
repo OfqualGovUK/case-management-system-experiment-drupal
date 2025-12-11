@@ -2,6 +2,13 @@
 
 // phpcs:ignoreFile
 
+$root_path = dirname(__DIR__) . '/../../';
+require "{$root_path}/vendor/autoload.php";
+if (file_exists($root_path . '.env')) {
+  $dotenv = Dotenv\Dotenv::createImmutable($root_path);
+  $dotenv->safeLoad();
+}
+
 /**
  * @file
  * Drupal site-specific configuration file.
@@ -256,7 +263,7 @@ $databases = [];
  * directory in the public files path. The setting below allows you to set
  * its location.
  */
-# $settings['config_sync_directory'] = '/directory/outside/webroot';
+ $settings['config_sync_directory'] = '../config/sync';
 
 /**
  * Settings:
@@ -843,17 +850,38 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
  *
  * Keep this code block at the end of this file to take full effect.
  */
-#
-# if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
-#   include $app_root . '/' . $site_path . '/settings.local.php';
-# }
 
-$settings['config_sync_directory'] = '/bitnami/drupal/sites/default/files/config/sync';
+//if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
+//  include $app_root . '/' . $site_path . '/settings.local.php';
+//}
 
 $config['openid_connect.client.entraid']['settings']['client_id'] = getenv('OPENID_CLIENT_ID');
 $config['openid_connect.client.entraid']['settings']['client_secret'] = getenv('OPENID_CLIENT_SECRET');
 $config['openid_connect.client.entraid']['settings']['userinfo_endpoint'] = getenv('OPENID_USERINFO_ENDPOINT');
-
 $tenantId = getenv('AZURE_TENANT_ID');
 $config['openid_connect.client.entraid']['settings']['authorization_endpoint'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/authorize';
 $config['openid_connect.client.entraid']['settings']['token_endpoint'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/token';
+
+/**
+ * Environment settings override.
+ *
+ * Load specific settings for each app environment.
+ */
+
+$app_env = getenv('ENV_NAME');
+
+if (!empty($app_env)) {
+  $env_settings_file = $app_root . '/' . $site_path . '/settings.local.' . $app_env . '.php';
+
+  if (file_exists($env_settings_file)) {
+    include $env_settings_file;
+    // Optional: Log which file was loaded
+    error_log("Loaded environment settings file: " . $env_settings_file);
+  }
+}
+
+// Automatically generated include for settings managed by ddev.
+$ddev_settings = __DIR__ . '/settings.ddev.php';
+if (getenv('IS_DDEV_PROJECT') == 'true' && is_readable($ddev_settings)) {
+  require $ddev_settings;
+}

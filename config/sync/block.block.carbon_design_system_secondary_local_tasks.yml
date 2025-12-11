@@ -1,0 +1,22 @@
+uuid: 409595dd-92c4-43f8-b858-f3cd281aa50a
+langcode: en-gb
+status: true
+dependencies:
+  theme:
+    - carbon_design_system
+_core:
+  default_config_hash: 2L0geP-ixCbCkEpW6BVF6H7vDUZN4ea07_Y9CociQm4
+id: carbon_design_system_secondary_local_tasks
+theme: carbon_design_system
+region: content
+weight: -3
+provider: null
+plugin: local_tasks_block
+settings:
+  id: local_tasks_block
+  label: 'Secondary tabs'
+  label_display: '0'
+  provider: core
+  primary: false
+  secondary: true
+visibility: {  }

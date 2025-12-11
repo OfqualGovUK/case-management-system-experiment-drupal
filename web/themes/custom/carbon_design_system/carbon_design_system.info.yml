@@ -1,0 +1,16 @@
+name: Carbon Design System (Web components)
+type: theme
+base theme: false
+description: A base theme to implement the Carbon Design System (web components).
+package: custom
+core_version_requirement: ^10.3 || ^11
+sdc: true
+libraries:
+  - carbon_design_system/global
+regions:
+  header: 'Header'
+  primary_menu: 'Primary menu'
+  content: 'Content'
+  footer: 'Footer'
+dependencies:
+  - drupal:system

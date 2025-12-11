@@ -29,7 +29,6 @@ stages:
             command: build
             repository: $(SNYK_DOCKER_REPOS)
             dockerfile: '$(dockerfilePath)'
-            containerRegistry: $(dockerRegistryServiceConnectionDev)
             tags: 'latest'
         - script: docker images
           displayName: List Docker Images
