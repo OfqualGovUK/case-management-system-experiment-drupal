@@ -1,69 +1,88 @@
-#!/bin/bash
-set -e
+#!/bin/sh
+set -eu
 
-echo "[INFO] Starting Drupal entrypoint script"
+DRUSH_BIN="${DRUSH_BIN:-vendor/bin/drush}"
+CONFIG_SYNC_DIR="${CONFIG_SYNC_DIR:-config/sync}"
+MYSQL_READY_MAX_RETRIES="${MYSQL_READY_MAX_RETRIES:-10}"
+MYSQL_READY_SLEEP_SECONDS="${MYSQL_READY_SLEEP_SECONDS:-5}"
+
+log()  { printf '[%s] %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$*"; }
+fail() { log "[ERROR] $*"; exit 1; }
+
+trap 'rc=$?; if [ "$rc" -ne 0 ]; then fail "Script failed (exit $rc)"; fi' EXIT
+
+drush() {
+  "$DRUSH_BIN" "$@"
+}
+
+log "[INFO] Starting Drupal entrypoint script"
 
 # Check MySQL readiness
-echo "[INFO] Waiting for MySQL to be ready..."
-for i in $(seq 1 10); do
-    php -r "
-    \$dsn = 'mysql:host=${DRUPAL_DATABASE_HOST};port=${DRUPAL_DATABASE_PORT_NUMBER}';
-    try {
-        new PDO(\$dsn, '${DRUPAL_DATABASE_USER}', '${DRUPAL_DATABASE_PASSWORD}');
-        exit(0);
-    } catch (PDOException \$e) {
-        exit(1);
-    }
-    " && echo "[INFO] MySQL is ready" && break || echo "[WARN] Attempt $i: MySQL not ready"
-    sleep 10
-    if [ "$i" -eq 10 ]; then
-        echo "[ERROR] MySQL did not become ready in time"
-        exit 1
-    fi
+log "[INFO] Waiting for MySQL to be ready..."
+for i in $(seq 1 ${MYSQL_READY_MAX_RETRIES}); do
+  php -r "
+  \$dsn = 'mysql:host=${DRUPAL_DATABASE_HOST};port=${DRUPAL_DATABASE_PORT_NUMBER}';
+  try {
+      new PDO(\$dsn, '${DRUPAL_DATABASE_USER}', '${DRUPAL_DATABASE_PASSWORD}', [PDO::ATTR_TIMEOUT => 2]);
+      exit(0);
+  } catch (PDOException \$e) {
+      exit(1);
+  }
+  " && { log "[INFO] MySQL is accepting connections"; break; }
+
+  log "[WARN] Attempt $i: MySQL not ready yet"
+  sleep ${MYSQL_READY_SLEEP_SECONDS}
+  if [ "$i" -eq ${MYSQL_READY_MAX_RETRIES} ]; then
+    fail "MySQL did not become ready in time"
+  fi
 done
 
-# Check Drupal bootstrap
-echo "[INFO] Checking Drupal bootstrap status"
-BOOTSTRAP=$(vendor/bin/drush core-status --field=bootstrap || echo "0")
-echo "[INFO] Bootstrap status: ${BOOTSTRAP}"
-
 # Install Drupal if not installed
-if [ "${BOOTSTRAP}" != "Successful" ]; then
-    echo "[INFO] Installing Drupal"
-    if [ -d config/sync ] && [ "$(ls -A config/sync)" ]; then
-        echo "[INFO] Using existing configuration"
-        vendor/bin/drush site:install --existing-config \
-        --db-url="mysql://${DRUPAL_DATABASE_USER}:${DRUPAL_DATABASE_PASSWORD}@${DRUPAL_DATABASE_HOST}:${DRUPAL_DATABASE_PORT_NUMBER}/${DRUPAL_DATABASE_NAME}" \
-        --account-name="${DRUPAL_USERNAME}" \
-        --account-pass="${DRUPAL_PASSWORD}" \
-        --account-mail="${DRUPAL_EMAIL}" \
-        -y
-        echo "[INFO] Drupal installation with existing config completed"
-    else
-        echo "[ERROR] config/sync directory is missing or empty. Cannot install with existing config."
-        exit 1
-    fi
-else
-    echo "[INFO] Drupal already installed"
+echo "[INFO] Checking Drupal bootstrap status"
+BOOTSTRAP="$(drush core:status --fields=bootstrap --format=string || true)"
+echo "[INFO] Bootstrap status: '${BOOTSTRAP:-N/A}'"
+
+CONFIG_PRESENT=false
+if [ -d "${CONFIG_SYNC_DIR}" ] && [ "$(ls -A "${CONFIG_SYNC_DIR}")" ]; then
+  CONFIG_PRESENT=true
 fi
 
-# Sync Drupal config
-if [ -d config/sync ] && [ "$(ls -A config/sync)" ]; then
-    echo "[INFO] Syncing Drupal config"
-    vendor/bin/drush cim -y || echo "[WARN] Sync failed"
-    echo "[INFO] Config sync completed"
+if [ "${BOOTSTRAP}" != "Successful" ]; then
+  log "[INFO] Drupal not installed. Proceeding with installation"
+
+  if [ "${CONFIG_PRESENT}" = "true" ]; then
+    log "[INFO] Installing with existing configuration from '${CONFIG_SYNC_DIR}'"
+    drush site:install --existing-config \
+      --db-url="mysql://${DRUPAL_DATABASE_USER}:${DRUPAL_DATABASE_PASSWORD}@${DRUPAL_DATABASE_HOST}:${DRUPAL_DATABASE_PORT_NUMBER}/${DRUPAL_DATABASE_NAME}" \
+      --account-name="${DRUPAL_USERNAME}" \
+      --account-pass="${DRUPAL_PASSWORD}" \
+      --account-mail="${DRUPAL_EMAIL}" \
+      -y
+    log "[INFO] Installation completed"
+
+    drush updatedb -y
+    drush config:import -y || log "[WARN] Config import had issues"
+    drush cr
+  else
+    fail "Config directory '${CONFIG_SYNC_DIR}' is missing or empty. Cannot install with existing config."
+  fi
 else
-    echo "[WARN] config/sync missing or empty. Skipping sync."
+  log "[INFO] Drupal already installed - applying updates & config"
+  drush updatedb -y
+  if [ "${CONFIG_PRESENT}" = "true" ]; then
+    drush config:import -y || log "[WARN] Config import had issues"
+  else
+    log "[WARN] '${CONFIG_SYNC_DIR}' missing or empty. Skipping config import."
+  fi
+  drush cr
 fi
 
 # Sync latest Drupal user password
-echo "[INFO] Syncing password for user: ${DRUPAL_USERNAME}"
-vendor/bin/drush user:password "${DRUPAL_USERNAME}" "${DRUPAL_PASSWORD}"
-if [ $? -eq 0 ]; then
-    echo "[INFO] Password synced for user: ${DRUPAL_USERNAME}"
+log "[INFO] Syncing password for user '${DRUPAL_USERNAME}'"
+if drush user:password "${DRUPAL_USERNAME}" "${DRUPAL_PASSWORD}"; then
+  log "[INFO] Password synced for user '${DRUPAL_USERNAME}'"
 else
-    echo "[ERROR] Password sync failed for user: ${DRUPAL_USERNAME}"
-    exit 1
+  fail "Password sync failed for user '${DRUPAL_USERNAME}'"
 fi
 
-echo "[INFO] Drupal setup complete"
+log "[INFO] Drupal setup complete"
