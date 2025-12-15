@@ -19,7 +19,10 @@ COPY composer.json composer.lock ./
 COPY ./web ./web
 COPY ./config ./config
 
-RUN mkdir -p web/sites/default/files && chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
+RUN mkdir -p web/sites/default/files \
+ && chown -R www-data:www-data . \
+ && find web/sites/default/files -type d -exec chmod 2775 {} \; \
+ && find web/sites/default/files -type f -exec chmod 0664 {} \;
 
 USER www-data
 
