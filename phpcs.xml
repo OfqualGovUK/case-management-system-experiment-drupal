@@ -2,19 +2,28 @@
 <ruleset name="Drupal Coding Standards">
   <description>PHP Coding standards for developers.</description>
 
-  <arg name="extensions" value="inc,install,module,php,profile,test,theme"/>
+  <!-- Show progress and use colors -->
+  <arg value="p"/>
+  <arg name="colors"/>
 
+  <!-- File extensions to check -->
+  <arg name="extensions" value="inc,install,module,php,profile,test,theme,info,txt,yml"/>
+
+  <!-- Drupal core version -->
   <config name="drupal_core_version" value="11"/>
 
+  <!-- Directories to scan -->
   <file>web/modules/custom</file>
   <file>web/themes/custom</file>
 
-  <rule ref="Drupal"/>
-
+  <!-- Apply Drupal and DrupalPractice standards -->
   <rule ref="Drupal">
     <exclude name="Drupal.InfoFiles.AutoAddedKeys.Version"/>
   </rule>
+  <rule ref="DrupalPractice"/>
 
+  <!-- Exclude patterns -->
   <exclude-pattern>**/node_modules/*</exclude-pattern>
   <exclude-pattern>**/dist/*</exclude-pattern>
+  <exclude-pattern>**/vendor/*</exclude-pattern>
 </ruleset>

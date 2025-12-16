@@ -1,0 +1,25 @@
+uuid: 0eed90fd-56d2-4e0e-ac05-1ced5a5c6790
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.storage.suitecrm_case.field_description
+    - filter.format.basic_html
+    - external_entities.external_entity_type.suitecrm_case
+  module:
+    - external_entities
+    - text
+id: suitecrm_case.suitecrm_case.field_description
+field_name: field_description
+entity_type: suitecrm_case
+bundle: suitecrm_case
+label: Description
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic_html
+field_type: text_long

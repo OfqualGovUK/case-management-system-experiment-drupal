@@ -2,6 +2,7 @@
 
 /**
  * @file
+ * Contains ofqual_custom_notify.module.
  */
 
 use Drupal\user\UserInterface;
@@ -10,9 +11,6 @@ use Drupal\user\UserInterface;
  * Implements hook_user_login().
  *
  * Sends a notification when a user logs in.
- *
- * @param \Drupal\user\UserInterface $account
- *   The user account that logged in.
  */
 function ofqual_custom_notify_user_login(UserInterface $account) {
   $accountName = $account->getAccountName();

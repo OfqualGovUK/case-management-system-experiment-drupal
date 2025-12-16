@@ -1,0 +1,20 @@
+uuid: 11d0eea7-e3ed-42cd-81c8-0b132c266a5b
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - datetime
+    - external_entities
+id: suitecrm_case.field_last_modified
+field_name: field_last_modified
+entity_type: suitecrm_case
+type: datetime
+settings:
+  datetime_type: datetime
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

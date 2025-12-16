@@ -5,6 +5,7 @@ dependencies:
   config:
     - filter.format.basic_html
   module:
+    - external_entities
     - file
     - filter
     - search
@@ -22,3 +23,4 @@ permissions:
   - 'delete own files'
   - 'search content'
   - 'use text format basic_html'
+  - 'view suitecrm_case external entity collection'

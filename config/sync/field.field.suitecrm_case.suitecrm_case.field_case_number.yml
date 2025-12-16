@@ -1,0 +1,25 @@
+uuid: aa3cae92-f46f-4982-9579-09f0883bb647
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.storage.suitecrm_case.field_case_number
+    - external_entities.external_entity_type.suitecrm_case
+  module:
+    - external_entities
+id: suitecrm_case.suitecrm_case.field_case_number
+field_name: field_case_number
+entity_type: suitecrm_case
+bundle: suitecrm_case
+label: 'Case Number'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

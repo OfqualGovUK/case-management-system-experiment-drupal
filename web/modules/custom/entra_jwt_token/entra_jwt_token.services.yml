@@ -1,0 +1,7 @@
+services:
+  entra_jwt_token.token_service:
+    class: Drupal\entra_jwt_token\EntraJwtTokenService
+    arguments:
+      - '@session'
+      - '@tempstore.private'
+      - '@logger.factory'

@@ -11,39 +11,39 @@
 
     {{ page.content }}
 
-    <h2>Demo Markup, this can be removed when appropriate</h2>
+{#    <h2>Demo Markup, this can be removed when appropriate</h2>#}
 
-    {{ include('carbon_design_system:notification', {
-      kind: 'success',
-      headline: 'Data Saved Successfully',
-      subtitle: 'Your configuration changes have been applied.',
-    }) }}
+{#    {{ include('carbon_design_system:notification', {#}
+{#      kind: 'success',#}
+{#      headline: 'Data Saved Successfully',#}
+{#      subtitle: 'Your configuration changes have been applied.',#}
+{#    }) }}#}
 
-    {{ include('carbon_design_system:notification', {
-      kind: 'error',
-      headline: 'Connection Error',
-      subtitle: 'Failed to retrieve data from the server. Please check the logs.',
-      hideCloseButton: true,
-    }) }}
+{#    {{ include('carbon_design_system:notification', {#}
+{#      kind: 'error',#}
+{#      headline: 'Connection Error',#}
+{#      subtitle: 'Failed to retrieve data from the server. Please check the logs.',#}
+{#      hideCloseButton: true,#}
+{#    }) }}#}
 
-    {{ include('carbon_design_system:tile', {
-      title: 'Carbon Tile',
-      content: 'This is a tile from the Carbon Design System.',
-    }) }}
+{#    {{ include('carbon_design_system:tile', {#}
+{#      title: 'Carbon Tile',#}
+{#      content: 'This is a tile from the Carbon Design System.',#}
+{#    }) }}#}
 
-    {{ include('carbon_design_system:data-table', {
-      title: 'User Management Table',
-      headers: [
-        { key: 'name', label: 'Name', sortable: true },
-        { key: 'status', label: 'Status' },
-        { key: 'role', label: 'User Role', sortable: true },
-      ],
-      rows: [
-        { name: 'John Doe', status: 'Active', role: 'Admin' },
-        { name: 'Jane Smith', status: 'Inactive', role: 'Editor' },
-        { name: 'Peter Jones', status: 'Active', role: 'User' },
-      ],
-    }) }}
+{#    {{ include('carbon_design_system:data-table', {#}
+{#      title: 'User Management Table',#}
+{#      headers: [#}
+{#        { key: 'name', label: 'Name', sortable: true },#}
+{#        { key: 'status', label: 'Status' },#}
+{#        { key: 'role', label: 'User Role', sortable: true },#}
+{#      ],#}
+{#      rows: [#}
+{#        { name: 'John Doe', status: 'Active', role: 'Admin' },#}
+{#        { name: 'Jane Smith', status: 'Inactive', role: 'Editor' },#}
+{#        { name: 'Peter Jones', status: 'Active', role: 'User' },#}
+{#      ],#}
+{#    }) }}#}
 
   </main>
 </div>

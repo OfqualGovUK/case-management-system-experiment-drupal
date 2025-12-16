@@ -1,0 +1,160 @@
+uuid: b5931cd4-0469-4b81-846c-f1e5db0e6290
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - external_entities_pathauto
+    - external_entities_suitecrm
+third_party_settings:
+  external_entities_pathauto:
+    generate_aliases: false
+id: suitecrm_case
+label: 'SuiteCRM Case'
+label_plural: 'SuiteCRM Cases'
+base_path: suitecrm-case
+description: ''
+content_class: Drupal\external_entities\Entity\ExternalEntity
+read_only: false
+debug_level: 0
+field_mappers:
+  field_case_number:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: case_number
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
+  field_description:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: description
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+        format:
+          id: ''
+      debug_level: 0
+  field_last_modified:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: date_modified
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
+  field_name:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: name
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
+  field_priority:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: priority
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
+  field_status:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: status
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
+  id:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: case_number
+            required_field: true
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
+  status:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: ''
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
+  title:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: name
+            required_field: true
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
+field_mapping_notes: ''
+data_aggregator:
+  id: single
+  config:
+    storage_clients:
+      -
+        id: suitecrm_rest
+        config:
+          list_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases'
+          single_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases?filter[case_number][eq]={id}'
+          format: json
+          parameters: {  }
+          response_data_path: data
+          debug_level: 0
+data_aggregator_notes: ''
+language_settings: null
+persistent_cache_max_age: 300
+annotation_entity_type_id: null
+annotation_bundle_id: null
+annotation_field_name: null
+annotation_inherited_fields: {  }
+locks: {  }

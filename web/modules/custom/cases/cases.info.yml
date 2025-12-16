@@ -1,5 +1,0 @@
-name: 'Cases'
-type: module
-description: 'Provides a page and block rendering a theme component.'
-core_version_requirement: ^11
-package: Custom

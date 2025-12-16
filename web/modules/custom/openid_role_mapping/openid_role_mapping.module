@@ -2,6 +2,7 @@
 
 /**
  * @file
+ * Contains openid_role_mapping.module.
  */
 
 use Drupal\user\Entity\Role;
@@ -11,11 +12,6 @@ use Drupal\user\UserInterface;
  * Implements hook_openid_connect_userinfo_save().
  *
  * Applies role mappings after userinfo is saved to the user entity.
- *
- * @param \Drupal\user\UserInterface $account
- *   The user account object.
- * @param array $userinfo
- *   The userinfo array returned from the OpenID Connect provider.
  */
 function openid_role_mapping_openid_connect_userinfo_save(UserInterface $account, array $userinfo): void {
   $config = \Drupal::config('openid_connect.settings');

@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Carbon Design System theme file
+ * Carbon Design System theme file.
  */
 
 use Drupal\Core\Form\FormStateInterface;
@@ -27,7 +28,7 @@ function carbon_design_system_theme_suggestions_form_element_alter(array &$sugge
  * Implements hook_preprocess_HOOK() for input templates.
  */
 function carbon_design_system_preprocess_input(&$variables) {
-// Check if the current element has a parent render array.
+  // Check if the current element has a parent render array.
   if (isset($variables['element'])) {
     $element = $variables['element'];
 
@@ -98,9 +99,9 @@ function carbon_design_system_preprocess_form_element(array &$variables) {
 
 /**
  * Implements hook_preprocess_HOOK() for page template.
- * * Fetches the 'main' and 'account' menus and combines the links.
  */
 function carbon_design_system_preprocess_page(array &$variables) {
+  // Fetches the 'main' and 'account' menus and combines the links.
   $config = \Drupal::config('system.site');
   $variables['site_name'] = $config->get('name');
 
@@ -114,9 +115,10 @@ function carbon_design_system_preprocess_page(array &$variables) {
  * Helper function to retrieve and format menu links for the Carbon UI Shell.
  *
  * @param string $menu_name
- * The machine name of the menu to load (e.g., 'main').
+ *   The machine name of the menu to load (e.g., 'main').
+ *
  * @return array
- * An array of links formatted for the SDC component.
+ *   An array of links formatted for the SDC component.
  */
 function carbon_design_system_get_menu_links(string $menu_name): array {
   // Use the Drupal service to get the menu tree parameters.
@@ -146,7 +148,7 @@ function carbon_design_system_get_menu_links(string $menu_name): array {
     $options = $url->getOptions();
 
     // Check for the 'is-active' class set by Drupal's menu system.
-    $isActive = (bool)in_array('is-active', $options['attributes']['class'] ?? []);
+    $isActive = (bool) in_array('is-active', $options['attributes']['class'] ?? []);
 
     $links[] = [
       'title' => $link->getTitle(),

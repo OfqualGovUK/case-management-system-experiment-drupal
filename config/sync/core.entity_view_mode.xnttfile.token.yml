@@ -1,0 +1,11 @@
+uuid: 7f664d23-5d98-4351-bef8-ac36bbb629c6
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - xntt_file_field
+id: xnttfile.token
+label: Token
+description: null
+targetEntityType: xnttfile
+cache: true

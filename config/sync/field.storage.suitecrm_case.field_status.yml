@@ -1,0 +1,21 @@
+uuid: bfdd937d-91f7-491c-9ae5-7d501d48dc0a
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - external_entities
+id: suitecrm_case.field_status
+field_name: field_status
+entity_type: suitecrm_case
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

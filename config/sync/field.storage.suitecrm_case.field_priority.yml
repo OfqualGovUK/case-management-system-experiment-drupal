@@ -1,0 +1,21 @@
+uuid: 3cb1c59e-0cdf-4843-a28c-1ee56a61287b
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - external_entities
+id: suitecrm_case.field_priority
+field_name: field_priority
+entity_type: suitecrm_case
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -18,14 +18,19 @@ module:
   dblog: 0
   dynamic_page_cache: 0
   editor: 0
+  entra_jwt_token: 0
   environment_indicator: 0
   environment_indicator_toolbar: 0
   environment_indicator_ui: 0
+  external_entities: 0
+  external_entities_pathauto: 0
+  external_entities_suitecrm: 0
   field: 0
   field_layout: 0
   field_ui: 0
   file: 0
   filter: 0
+  heading: 0
   help: 0
   image: 0
   inline_form_errors: 0
@@ -54,9 +59,14 @@ module:
   system: 0
   taxonomy: 0
   text: 0
+  token: 0
   toolbar: 0
   user: 0
   views_ui: 0
+  xntt_file_field: 0
+  xntt_views: 0
+  xnttmanager: 0
+  pathauto: 1
   externalauth: 10
   views: 10
 theme:

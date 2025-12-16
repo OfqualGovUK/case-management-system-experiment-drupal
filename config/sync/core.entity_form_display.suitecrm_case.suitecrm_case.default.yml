@@ -1,0 +1,95 @@
+uuid: d5717e1f-8280-4269-a98f-e5ec0b4a5ac0
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.field.suitecrm_case.suitecrm_case.field_case_number
+    - field.field.suitecrm_case.suitecrm_case.field_description
+    - field.field.suitecrm_case.suitecrm_case.field_last_modified
+    - field.field.suitecrm_case.suitecrm_case.field_name
+    - field.field.suitecrm_case.suitecrm_case.field_priority
+    - field.field.suitecrm_case.suitecrm_case.field_status
+  module:
+    - datetime
+    - external_entities
+    - field_layout
+    - layout_discovery
+    - text
+third_party_settings:
+  field_layout:
+    id: layout_onecol
+    settings:
+      label: ''
+id: suitecrm_case.suitecrm_case.default
+targetEntityType: suitecrm_case
+bundle: suitecrm_case
+mode: default
+content:
+  field_case_number:
+    type: number
+    weight: 121
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_description:
+    type: text_textarea
+    weight: 123
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_last_modified:
+    type: datetime_default
+    weight: 128
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_name:
+    type: string_textfield
+    weight: 122
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_priority:
+    type: string_textfield
+    weight: 126
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_status:
+    type: string_textfield
+    weight: 127
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  langcode:
+    type: language_select
+    weight: 2
+    region: content
+    settings:
+      include_locked: true
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 120
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: 3
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }

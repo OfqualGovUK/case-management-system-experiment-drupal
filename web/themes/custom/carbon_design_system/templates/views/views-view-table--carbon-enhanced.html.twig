@@ -1,0 +1,81 @@
+{#
+/**
+ * @file
+ * Theme override for displaying a view as a Carbon Data Table (Enhanced).
+ *
+ * This template transforms a Drupal Views table into a Carbon Design System
+ * data table component, similar to how status-messages uses the notification component.
+ *
+ * Available variables:
+ * - attributes: Remaining HTML attributes for the element.
+ * - title: The title of this group of rows.
+ * - header: The table header columns.
+ * - caption_needed: Is the caption tag needed.
+ * - caption: The caption for this table.
+ * - rows: Table row items.
+ * - responsive: A flag indicating whether table is responsive.
+ * - sticky: A flag indicating whether table header is sticky.
+ * - view: The view object.
+ *
+ * @see template_preprocess_views_view_table()
+ */
+#}
+
+{# Build columns array from Views header #}
+{% set columns = [] %}
+{% for key, column in header %}
+  {% set columns = columns|merge([{
+    key: key,
+    header: column.content|render|striptags|trim,
+    sortable: column.url ? true : false,
+  }]) %}
+{% endfor %}
+
+{# Build rows array from Views rows #}
+{% set table_rows = [] %}
+{% for row in rows %}
+  {% set row_data = {} %}
+  {% for key, column in row.columns %}
+    {# Extract and render the cell content #}
+    {% set cell_content %}
+      {% if column.wrapper_element %}
+        <{{ column.wrapper_element }}>
+          {% for content in column.content %}
+            {{ content.separator }}{{ content.field_output }}
+          {% endfor %}
+        </{{ column.wrapper_element }}>
+      {% else %}
+        {% for content in column.content %}
+          {{ content.separator }}{{ content.field_output }}
+        {% endfor %}
+      {% endif %}
+    {% endset %}
+
+    {# Store the rendered content in row data #}
+    {% set row_data = row_data|merge({(key): cell_content}) %}
+  {% endfor %}
+
+  {% set table_rows = table_rows|merge([row_data]) %}
+{% endfor %}
+
+{# Determine table size based on view settings or default #}
+{% set table_size = view.element.#table_size|default('lg') %}
+
+{# Determine if zebra striping should be enabled #}
+{% set use_zebra = view.element.#use_zebra_styles|default(true) %}
+
+{# Check if batch actions are enabled via view settings #}
+{% set batch_actions = view.element.#batch_actions|default(false) %}
+
+{# Render the Carbon Data Table component #}
+{{ include('carbon_design_system:datatable', {
+  title: caption ?: title,
+  columns: columns,
+  rows: table_rows,
+  useZebraStyles: use_zebra,
+  isSortable: true,
+  stickyHeader: sticky,
+  size: table_size,
+  attributes: attributes,
+  batchActions: batch_actions,
+}) }}
