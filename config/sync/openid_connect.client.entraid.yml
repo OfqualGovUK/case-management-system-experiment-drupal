@@ -14,4 +14,7 @@ settings:
   token_endpoint: ''
   userinfo_endpoint: ''
   end_session_endpoint: ''
-  scopes: []
+  scopes:
+    - openid
+    - email
+    - profile
