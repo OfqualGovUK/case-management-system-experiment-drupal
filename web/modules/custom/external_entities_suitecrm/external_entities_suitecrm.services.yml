@@ -1,0 +1,2 @@
+services:
+  # No services needed - storage client is discovered via plugin annotation

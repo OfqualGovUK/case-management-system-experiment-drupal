@@ -1,0 +1,97 @@
+uuid: 3ea6ed14-587f-4ba9-bf3e-37c50103dde8
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.field.suitecrm_case.suitecrm_case.field_case_number
+    - field.field.suitecrm_case.suitecrm_case.field_description
+    - field.field.suitecrm_case.suitecrm_case.field_last_modified
+    - field.field.suitecrm_case.suitecrm_case.field_name
+    - field.field.suitecrm_case.suitecrm_case.field_priority
+    - field.field.suitecrm_case.suitecrm_case.field_status
+  module:
+    - datetime
+    - external_entities
+    - field_layout
+    - heading
+    - layout_discovery
+    - text
+third_party_settings:
+  field_layout:
+    id: layout_onecol
+    settings:
+      label: ''
+id: suitecrm_case.suitecrm_case.default
+targetEntityType: suitecrm_case
+bundle: suitecrm_case
+mode: default
+content:
+  field_case_number:
+    type: number_integer
+    label: hidden
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_description:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_last_modified:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 9
+    region: content
+  field_name:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_priority:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_status:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 8
+    region: content
+  status:
+    type: boolean
+    label: hidden
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  title:
+    type: heading_text
+    label: hidden
+    settings:
+      size: h2
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  langcode: true

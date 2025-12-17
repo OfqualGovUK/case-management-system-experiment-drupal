@@ -1,0 +1,7 @@
+entra_jwt_token.token_status:
+  path: '/admin/entra-jwt-token/status'
+  defaults:
+    _controller: '\Drupal\entra_jwt_token\Controller\TokenStatusController::status'
+    _title: 'JWT Token Status'
+  requirements:
+    _permission: 'access content'

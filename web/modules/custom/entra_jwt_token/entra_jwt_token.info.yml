@@ -1,0 +1,7 @@
+name: 'Entra JWT Token'
+type: module
+description: 'Provides JWT token acquisition and management for Microsoft Entra SSO'
+package: Authentication
+core_version_requirement: ^10 || ^11
+dependencies:
+  - openid_connect:openid_connect

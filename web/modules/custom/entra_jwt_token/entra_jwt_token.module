@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * @file
+ * Contains entra_jwt_token.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_help().
+ */
+function entra_jwt_token_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.entra_jwt_token':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides JWT token acquisition and management for Microsoft Entra SSO.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_openid_connect_post_authorize().
+ */
+function entra_jwt_token_openid_connect_post_authorize(UserInterface $account, array $context) {
+  \Drupal::logger('entra_jwt_token')->info('Hook called! Plugin ID: @id', [
+    '@id' => $context['plugin_id'] ?? 'unknown',
+  ]);
+
+  // Check if this is the Entra ID client.
+  if (isset($context['plugin_id']) && $context['plugin_id'] === 'entraid') {
+    $token_service = \Drupal::service('entra_jwt_token.token_service');
+
+    // Store ID token (JWT)
+    if (!empty($context['tokens']['id_token'])) {
+      $token_service->storeJwtToken($context['tokens']['id_token']);
+      \Drupal::logger('entra_jwt_token')->info('JWT token stored after Entra authentication');
+    }
+
+    // Store access token.
+    if (!empty($context['tokens']['access_token'])) {
+      $token_service->storeAccessToken($context['tokens']['access_token']);
+      \Drupal::logger('entra_jwt_token')->info('Access token stored after Entra authentication');
+    }
+  }
+}

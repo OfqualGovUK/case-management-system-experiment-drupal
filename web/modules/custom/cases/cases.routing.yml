@@ -1,7 +1,0 @@
-cases.page:
-  path: "/cases"
-  defaults:
-    _controller: '\Drupal\cases\Controller\CasesController::casesPage'
-    _title: "Cases"
-  requirements:
-    _permission: "access content"

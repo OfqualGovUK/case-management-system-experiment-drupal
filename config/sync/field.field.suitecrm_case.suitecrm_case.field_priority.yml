@@ -1,0 +1,21 @@
+uuid: 40eba625-143d-4468-99ab-5187588e33b9
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.storage.suitecrm_case.field_priority
+    - external_entities.external_entity_type.suitecrm_case
+  module:
+    - external_entities
+id: suitecrm_case.suitecrm_case.field_priority
+field_name: field_priority
+entity_type: suitecrm_case
+bundle: suitecrm_case
+label: Priority
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

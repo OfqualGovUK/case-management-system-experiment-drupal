@@ -1,0 +1,8 @@
+name: 'SuiteCRM External Entities'
+type: module
+description: 'Provides External Entities integration for SuiteCRM via Entra authenticated REST API'
+package: External Entities
+core_version_requirement: ^10 || ^11
+dependencies:
+  - external_entities:external_entities
+  - entra_jwt_token:entra_jwt_token

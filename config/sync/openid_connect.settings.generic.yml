@@ -1,0 +1,5 @@
+settings:
+  scopes: 'openid offline_access'
+  client_id: ''
+  client_secret: ''
+  authorization_endpoint_extra: ''
