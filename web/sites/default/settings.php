@@ -891,3 +891,18 @@ $ddev_settings = __DIR__ . '/settings.ddev.php';
 if (getenv('IS_DDEV_PROJECT') == 'true' && is_readable($ddev_settings)) {
   require $ddev_settings;
 }
+
+/**
+ * Store PHP and Twig caches in /tmp to avoid permission issues on shared
+ * storage. These caches are temporary and safe to rebuild.
+ */
+
+$settings['php_storage']['default'] = [
+  'class' => 'Drupal\Component\PhpStorage\FileStorage',
+  'directory' => '/tmp/drupal/php',
+];
+
+$settings['php_storage']['twig'] = [
+  'class' => 'Drupal\Component\PhpStorage\FileStorage',
+  'directory' => '/tmp/drupal/twig',
+];
