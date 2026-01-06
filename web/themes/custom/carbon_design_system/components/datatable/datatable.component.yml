@@ -1,0 +1,60 @@
+name: Data Table
+status: stable
+description: Implements the Carbon Design System Data Table using Web Components.
+props:
+  attributes:
+    type: Drupal\Core\Template\Attribute
+    description: HTML attributes for the outermost <cds-table> element.
+    required: false
+  size:
+    type: string
+    description: The size of the table. Must be one of 'xs', 'sm', 'md', 'lg', or 'xl'. Defaults to 'lg'.
+    required: false
+  useZebraStyles:
+    type: boolean
+    description: Set to true to enable zebra striping on rows. Defaults to false.
+    required: false
+    default: false
+  isSortable:
+    type: boolean
+    description: Set to true to enable sortable columns. Defaults to false.
+    required: false
+    default: false
+  stickyHeader:
+    type: boolean
+    description: Set to true to make the header sticky when scrolling. Defaults to false.
+    required: false
+    default: false
+  batchActions:
+    type: boolean
+    description: Set to true to enable batch action functionality with selection. Defaults to false.
+    required: false
+    default: false
+  columns:
+    type: array
+    description: Array of column definitions. Each column should have 'key', 'header', and optionally 'sortable'.
+    required: true
+  rows:
+    type: array
+    description: Array of row data. Each row should be an associative array with keys matching column keys.
+    required: true
+  rowActions:
+    type: boolean
+    description: Set to true to enable row-level action buttons (overflow menu). Defaults to false.
+    required: false
+    default: false
+  title:
+    type: string
+    description: Optional title for the table (displayed in toolbar).
+    required: false
+  description:
+    type: string
+    description: Optional description for the table (displayed in toolbar).
+    required: false
+slots:
+  toolbar_actions:
+    title: Toolbar Actions
+    description: Optional slot for custom toolbar actions (buttons, filters, etc.).
+  batch_actions:
+    title: Batch Actions
+    description: Optional slot for batch action buttons when items are selected.

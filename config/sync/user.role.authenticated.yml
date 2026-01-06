@@ -23,4 +23,5 @@ permissions:
   - 'delete own files'
   - 'search content'
   - 'use text format basic_html'
+  - 'view suitecrm_case external entity'
   - 'view suitecrm_case external entity collection'

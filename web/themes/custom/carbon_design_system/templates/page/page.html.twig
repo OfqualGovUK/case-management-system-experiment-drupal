@@ -5,48 +5,18 @@
   links: header_links
 }) }}
 
-<div id="content-area">
-  <main role="main">
-    <a id="main-content" tabindex="-1"></a>{# A skip link target #}
+<main class="cds--content">
 
-    {{ page.content }}
+  <a id="main-content" tabindex="-1"></a>{# A skip link target #}
 
-{#    <h2>Demo Markup, this can be removed when appropriate</h2>#}
-
-{#    {{ include('carbon_design_system:notification', {#}
-{#      kind: 'success',#}
-{#      headline: 'Data Saved Successfully',#}
-{#      subtitle: 'Your configuration changes have been applied.',#}
-{#    }) }}#}
-
-{#    {{ include('carbon_design_system:notification', {#}
-{#      kind: 'error',#}
-{#      headline: 'Connection Error',#}
-{#      subtitle: 'Failed to retrieve data from the server. Please check the logs.',#}
-{#      hideCloseButton: true,#}
-{#    }) }}#}
-
-{#    {{ include('carbon_design_system:tile', {#}
-{#      title: 'Carbon Tile',#}
-{#      content: 'This is a tile from the Carbon Design System.',#}
-{#    }) }}#}
-
-{#    {{ include('carbon_design_system:data-table', {#}
-{#      title: 'User Management Table',#}
-{#      headers: [#}
-{#        { key: 'name', label: 'Name', sortable: true },#}
-{#        { key: 'status', label: 'Status' },#}
-{#        { key: 'role', label: 'User Role', sortable: true },#}
-{#      ],#}
-{#      rows: [#}
-{#        { name: 'John Doe', status: 'Active', role: 'Admin' },#}
-{#        { name: 'Jane Smith', status: 'Inactive', role: 'Editor' },#}
-{#        { name: 'Peter Jones', status: 'Active', role: 'User' },#}
-{#      ],#}
-{#    }) }}#}
-
-  </main>
-</div>
+  <cds-grid>
+    <cds-row>
+      <cds-column sm="4" md="8" lg="16">
+        {{ page.content }}
+      </cds-column>
+    </cds-row>
+  </cds-grid>
+</main>
 
 {% if page.footer %}
   <footer role="contentinfo">

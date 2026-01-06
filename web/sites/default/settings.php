@@ -861,12 +861,25 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 //  include $app_root . '/' . $site_path . '/settings.local.php';
 //}
 
-$config['openid_connect.client.entraid']['settings']['client_id'] = getenv('OPENID_CLIENT_ID');
-$config['openid_connect.client.entraid']['settings']['client_secret'] = getenv('OPENID_CLIENT_SECRET');
-$config['openid_connect.client.entraid']['settings']['userinfo_endpoint'] = getenv('OPENID_USERINFO_ENDPOINT');
+$clientId = getenv('OPENID_CLIENT_ID');
+$clientSecret = getenv('OPENID_CLIENT_SECRET');
 $tenantId = getenv('AZURE_TENANT_ID');
+$userinfoEndpoint = getenv('OPENID_USERINFO_ENDPOINT');
+
+// Configure OpenID Connect client
+$config['openid_connect.client.entraid']['settings']['client_id'] = $clientId;
+$config['openid_connect.client.entraid']['settings']['client_secret'] = $clientSecret;
 $config['openid_connect.client.entraid']['settings']['authorization_endpoint'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/authorize';
 $config['openid_connect.client.entraid']['settings']['token_endpoint'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/token';
+$config['openid_connect.client.entraid']['settings']['userinfo_endpoint'] = $userinfoEndpoint;
+$config['openid_connect.client.entraid']['settings']['authorization_endpoint_extra'] = 'resource=api://' . $clientId;
+
+// Configure scopes
+$config['openid_connect.client.entraid']['settings']['scopes'] = [
+  'openid',
+  'offline_access',
+  'api://' . $clientId . '/access_as_user'
+];
 
 /**
  * Environment settings override.

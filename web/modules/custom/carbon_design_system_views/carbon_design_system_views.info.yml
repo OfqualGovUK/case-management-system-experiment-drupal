@@ -1,0 +1,7 @@
+name: 'Carbon Views Integration'
+type: module
+description: 'Views style plugins for Carbon Design System'
+core_version_requirement: ^10 || ^11
+package: 'Carbon Design System'
+dependencies:
+  - drupal:views

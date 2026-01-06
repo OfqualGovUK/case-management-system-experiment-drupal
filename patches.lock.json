@@ -1,0 +1,17 @@
+{
+    "_hash": "c21ed9a55e2835747be5486fa1fae9a1140cf28a48fbcceb5c4ee372cc1fb915",
+    "patches": {
+        "drupal/core": [
+            {
+                "package": "drupal/core",
+                "description": "Add Theme suggestion for messages",
+                "url": "https://www.drupal.org/files/issues/2025-06-20/3456176-138-missing-status-messages-theme-suggestions.patch",
+                "sha256": "5d3a593d01dcfea57ae27dac5af65d580580ba92fb69c04cafd54e6596c4d635",
+                "depth": 2,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}
