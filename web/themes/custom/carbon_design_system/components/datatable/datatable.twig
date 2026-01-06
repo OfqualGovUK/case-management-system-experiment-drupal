@@ -1,0 +1,65 @@
+<cds-table-container>
+  {% if title or description %}
+    <cds-table-header>
+      {% if title %}<cds-table-title>{{ title }}</cds-table-title>{% endif %}
+      {% if description %}<cds-table-description>{{ description }}</cds-table-description>{% endif %}
+    </cds-table-header>
+  {% endif %}
+
+{#  <cds-table-toolbar>#}
+{#    <cds-table-toolbar-content>#}
+{#      <cds-table-toolbar-search#}
+{#        placeholder="Filter table rows..."#}
+{#        size="{{ size }}"#}
+{#        persistent="true">#}
+{#      </cds-table-toolbar-search>#}
+
+{#      {% if toolbar_actions %}#}
+{#        <div class="toolbar-actions">#}
+{#          {{ toolbar_actions }}#}
+{#        </div>#}
+{#      {% endif %}#}
+{#    </cds-table-toolbar-content>#}
+{#  </cds-table-toolbar>#}
+
+  <cds-table
+    style="width: 100%; display: block;"
+    size="{{ size }}"
+    {% if useZebraStyles %}use-zebra-styles{% endif %}
+  >
+    <cds-table-head>
+      <cds-table-header-row>
+        {% for column in headers %}
+          <cds-table-header-cell style="width: {{ column.width }};">
+            {{ column.header }}
+          </cds-table-header-cell>
+        {% endfor %}
+        {% if rowActions %}
+          <cds-table-header-cell style="width: 80px;"></cds-table-header-cell>
+        {% endif %}
+      </cds-table-header-row>
+    </cds-table-head>
+
+    <cds-table-body>
+      {% for row in rows %}
+        <cds-table-row>
+          {% for column in headers %}
+            <cds-table-cell>{{ row[column.key]|raw }}</cds-table-cell>
+          {% endfor %}
+          {% if rowActions and row.dynamic_actions is defined %}
+            <cds-table-cell>
+              <cds-overflow-menu flipped="true">
+                {% if row.dynamic_actions.edit %}
+                  <cds-overflow-menu-item href="{{ row.dynamic_actions.edit }}">Edit</cds-overflow-menu-item>
+                {% endif %}
+                {% if row.dynamic_actions.delete %}
+                  <cds-overflow-menu-item href="{{ row.dynamic_actions.delete }}" danger="true">Delete</cds-overflow-menu-item>
+                {% endif %}
+              </cds-overflow-menu>
+            </cds-table-cell>
+          {% endif %}
+        </cds-table-row>
+      {% endfor %}
+    </cds-table-body>
+  </cds-table>
+</cds-table-container>

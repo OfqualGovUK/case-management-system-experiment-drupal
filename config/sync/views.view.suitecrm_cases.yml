@@ -3,12 +3,11 @@ langcode: en-gb
 status: true
 dependencies:
   config:
-    - field.storage.suitecrm_case.field_last_modified
     - field.storage.suitecrm_case.field_name
     - field.storage.suitecrm_case.field_priority
     - system.menu.main
   module:
-    - datetime
+    - carbon_design_system_views
     - xntt_views
 id: suitecrm_cases
 label: 'SuiteCRM Cases'
@@ -26,17 +25,17 @@ display:
     display_options:
       title: 'SuiteCRM Cases'
       fields:
-        id:
-          id: id
+        field_name:
+          id: field_name
           table: xntt_views_suitecrm_case
-          field: id
+          field: field_name
           relationship: none
           group_type: group
           admin_label: ''
           entity_type: suitecrm_case
-          entity_field: id
+          entity_field: field_name
           plugin_id: xnttfield
-          label: ID
+          label: Name
           exclude: false
           alter:
             alter_text: false
@@ -91,83 +90,17 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: 0
-        field_last_modified:
-          id: field_last_modified
+        id:
+          id: id
           table: xntt_views_suitecrm_case
-          field: field_last_modified
+          field: id
           relationship: none
           group_type: group
           admin_label: ''
           entity_type: suitecrm_case
-          entity_field: field_last_modified
+          entity_field: id
           plugin_id: xnttfield
-          label: 'Last Modified'
-          exclude: false
-          alter:
-            alter_text: false
-            text: ''
-            make_link: false
-            path: ''
-            absolute: false
-            external: false
-            replace_spaces: false
-            path_case: none
-            trim_whitespace: false
-            alt: ''
-            rel: ''
-            link_class: ''
-            prefix: ''
-            suffix: ''
-            target: ''
-            nl2br: false
-            max_length: 0
-            word_boundary: true
-            ellipsis: true
-            more_link: false
-            more_link_text: ''
-            more_link_path: ''
-            strip_tags: false
-            trim: false
-            preserve_tags: ''
-            html: false
-          element_type: ''
-          element_class: ''
-          element_label_type: ''
-          element_label_class: ''
-          element_label_colon: false
-          element_wrapper_type: ''
-          element_wrapper_class: ''
-          element_default_classes: true
-          empty: ''
-          hide_empty: false
-          empty_zero: false
-          hide_alter_empty: true
-          click_sort_column: value
-          type: datetime_default
-          settings:
-            timezone_override: ''
-            format_type: medium
-          group_column: value
-          group_columns: {  }
-          group_rows: true
-          delta_limit: 0
-          delta_offset: 0
-          delta_reversed: false
-          delta_first_last: false
-          multi_type: separator
-          separator: ', '
-          field_api_classes: 0
-        field_name:
-          id: field_name
-          table: xntt_views_suitecrm_case
-          field: field_name
-          relationship: none
-          group_type: group
-          admin_label: ''
-          entity_type: suitecrm_case
-          entity_field: field_name
-          plugin_id: xnttfield
-          label: Name
+          label: ID
           exclude: false
           alter:
             alter_text: false
@@ -357,7 +290,7 @@ display:
         options:
           offset: 0
           pagination_heading_level: h4
-          items_per_page: 5
+          items_per_page: 10
           total_pages: null
           id: 0
           tags:
@@ -392,7 +325,15 @@ display:
       arguments: {  }
       filters: {  }
       style:
-        type: table
+        type: carbon_datatable_basic
+        options:
+          row_class: ''
+          default_row_class: true
+          widths:
+            field_name: 50%
+            id: ''
+            field_priority: ''
+            title: ''
       row:
         type: fields
       query:
@@ -408,7 +349,6 @@ display:
         - 'languages:language_interface'
         - url.query_args
       tags:
-        - 'config:field.storage.suitecrm_case.field_last_modified'
         - 'config:field.storage.suitecrm_case.field_name'
         - 'config:field.storage.suitecrm_case.field_priority'
   page_1:
@@ -434,6 +374,5 @@ display:
         - 'languages:language_interface'
         - url.query_args
       tags:
-        - 'config:field.storage.suitecrm_case.field_last_modified'
         - 'config:field.storage.suitecrm_case.field_name'
         - 'config:field.storage.suitecrm_case.field_priority'

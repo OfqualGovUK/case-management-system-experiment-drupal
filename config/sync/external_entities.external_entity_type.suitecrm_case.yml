@@ -30,6 +30,19 @@ field_mappers:
             data_processors: {  }
             description: ''
       debug_level: 0
+  field_date:
+    id: generic
+    config:
+      property_mappings:
+        value:
+          id: simple
+          config:
+            mapping: date_modified
+            required_field: false
+            main_property: true
+            data_processors: {  }
+            description: ''
+      debug_level: 0
   field_description:
     id: generic
     config:
