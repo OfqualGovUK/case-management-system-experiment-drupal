@@ -15,11 +15,15 @@ WORKDIR /var/www/html
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-COPY composer.json composer.lock ./
-COPY ./web ./web
-COPY ./config ./config
+COPY --chown=www-data:www-data composer.json composer.lock ./
+COPY --chown=www-data:www-data ./web ./web
+COPY --chown=www-data:www-data ./config ./config
 
-RUN mkdir -p web/sites/default/files && chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
+RUN mkdir -p web/sites/default/files
+
+RUN find /var/www/html/. -type d -not -perm 2775 -exec chmod 2775 {} \; && \ 
+    find /var/www/html/. -type f -not -perm 0664 -exec chmod 0664 {} \; && \ 
+    find /var/www/html/. ! -user www-data -exec chown www-data:www-data {} \;  
 
 USER www-data
 
