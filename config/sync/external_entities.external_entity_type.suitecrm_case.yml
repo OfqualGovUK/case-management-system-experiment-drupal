@@ -7,7 +7,7 @@ dependencies:
     - external_entities_suitecrm
 third_party_settings:
   external_entities_pathauto:
-    generate_aliases: false
+    generate_aliases: true
 id: suitecrm_case
 label: 'SuiteCRM Case'
 label_plural: 'SuiteCRM Cases'
@@ -15,7 +15,7 @@ base_path: suitecrm-case
 description: ''
 content_class: Drupal\external_entities\Entity\ExternalEntity
 read_only: false
-debug_level: 0
+debug_level: 2
 field_mappers:
   field_case_number:
     id: generic
@@ -29,7 +29,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
   field_date:
     id: generic
     config:
@@ -42,7 +42,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
   field_description:
     id: generic
     config:
@@ -57,7 +57,7 @@ field_mappers:
             description: ''
         format:
           id: ''
-      debug_level: 0
+      debug_level: 2
   field_last_modified:
     id: generic
     config:
@@ -70,7 +70,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
   field_name:
     id: generic
     config:
@@ -83,7 +83,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
   field_priority:
     id: generic
     config:
@@ -96,7 +96,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
   field_status:
     id: generic
     config:
@@ -109,7 +109,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
   id:
     id: generic
     config:
@@ -122,7 +122,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
   status:
     id: generic
     config:
@@ -135,7 +135,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
   title:
     id: generic
     config:
@@ -148,7 +148,7 @@ field_mappers:
             main_property: true
             data_processors: {  }
             description: ''
-      debug_level: 0
+      debug_level: 2
 field_mapping_notes: ''
 data_aggregator:
   id: single
@@ -158,11 +158,12 @@ data_aggregator:
         id: suitecrm_rest
         config:
           list_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases'
-          single_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases?filter[case_number][eq]={id}'
+          push_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule'
+          single_endpoint: '/Cases?filter[case_number][eq]={id}'
+          api_type: Cases
           format: json
-          parameters: {  }
           response_data_path: data
-          debug_level: 0
+          parameters: {  }
 data_aggregator_notes: ''
 language_settings: null
 persistent_cache_max_age: 300

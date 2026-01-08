@@ -29,7 +29,7 @@ mode: default
 content:
   field_case_number:
     type: number_integer
-    label: hidden
+    label: inline
     settings:
       thousand_separator: ''
       prefix_suffix: true
@@ -38,7 +38,7 @@ content:
     region: content
   field_date:
     type: string
-    label: hidden
+    label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }
@@ -62,7 +62,7 @@ content:
     region: content
   field_name:
     type: string
-    label: hidden
+    label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }

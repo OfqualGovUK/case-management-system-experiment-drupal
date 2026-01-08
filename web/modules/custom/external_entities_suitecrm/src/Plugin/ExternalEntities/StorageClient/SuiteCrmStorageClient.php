@@ -3,7 +3,6 @@
 namespace Drupal\external_entities_suitecrm\Plugin\ExternalEntities\StorageClient;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -17,18 +16,73 @@ use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
+ * SuiteCRM REST storage client with Entra authentication.
+ *
  * @StorageClient(
  *   id = "suitecrm_rest",
  *   label = @Translation("SuiteCRM REST (Entra Authenticated)")
  * )
  */
-class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInterface {
+class SuiteCrmStorageClient extends StorageClientBase {
 
+  /**
+   * The HTTP client.
+   *
+   * @var \GuzzleHttp\ClientInterface
+   */
   protected $httpClient;
+
+  /**
+   * The Entra JWT token service.
+   *
+   * @var \Drupal\entra_jwt_token\EntraJwtTokenService
+   */
   protected $tokenService;
+
+  /**
+   * The cache backend.
+   *
+   * @var \Drupal\Core\Cache\CacheBackendInterface
+   */
   protected $cacheBackend;
+
+  /**
+   * Cached cases data.
+   *
+   * @var array|null
+   */
   protected $casesCache = NULL;
 
+  /**
+   * Constructs a SuiteCrmStorageClient object.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\StringTranslation\TranslationInterface $string_translation
+   *   The string translation service.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
+   *   The logger factory.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   *   The entity field manager.
+   * @param \Drupal\Core\Utility\Token $token
+   *   The token service.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle info.
+   * @param mixed $external_entity_type
+   *   The external entity type.
+   * @param \GuzzleHttp\ClientInterface $http_client
+   *   The HTTP client.
+   * @param \Drupal\entra_jwt_token\EntraJwtTokenService $token_service
+   *   The Entra JWT token service.
+   * @param mixed $cache_backend
+   *   The cache backend.
+   */
   public function __construct(
     array $configuration,
           $plugin_id,
@@ -42,7 +96,7 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     $external_entity_type,
     ClientInterface $http_client,
     EntraJwtTokenService $token_service,
-    $cache_backend
+    $cache_backend,
   ) {
     parent::__construct(
       $configuration,
@@ -61,6 +115,9 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     $this->cacheBackend = $cache_backend;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
@@ -79,25 +136,37 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function defaultConfiguration() {
     return [
       'list_endpoint' => '',
       'single_endpoint' => '',
+      'push_endpoint' => '',
       'format' => 'json',
       'parameters' => [],
       'response_data_path' => 'data',
+      'api_type' => 'Cases',
     ];
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $form = [];
-
     $form['list_endpoint'] = [
-      '#type' => 'url',
-      '#title' => $this->t('List Endpoint'),
-      '#description' => $this->t('API endpoint for loading multiple entities (e.g., /Cases)'),
+      '#type' => 'textfield',
+      '#title' => $this->t('List Endpoint (GET)'),
+      '#description' => $this->t('API endpoint for reading entities (e.g., https://...suitecrm/custom/oqmodule/Cases)'),
       '#default_value' => $this->configuration['list_endpoint'] ?? '',
-      '#required' => TRUE,
+    ];
+
+    $form['push_endpoint'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Push Endpoint (PATCH/POST/DELETE)'),
+      '#description' => $this->t('API endpoint base URL for write operations (e.g., https://...Api/V8/custom/oqmodule) - Do NOT include module name'),
+      '#default_value' => $this->configuration['push_endpoint'] ?? '',
     ];
 
     $form['single_endpoint'] = [
@@ -105,7 +174,13 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
       '#title' => $this->t('Single Entity Endpoint Pattern'),
       '#description' => $this->t('API endpoint pattern for loading a single entity. Use {id} as placeholder (e.g., /Cases?filter[case_number][eq]={id})'),
       '#default_value' => $this->configuration['single_endpoint'] ?? '',
-      '#required' => TRUE,
+    ];
+
+    $form['api_type'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('API Resource Type'),
+      '#description' => $this->t('The JSON:API resource type - PLURAL form (e.g., Cases, Contacts, Accounts)'),
+      '#default_value' => $this->configuration['api_type'] ?? 'Cases',
     ];
 
     $form['format'] = [
@@ -126,7 +201,7 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     $form['response_data_path'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Response Data Path'),
-      '#description' => $this->t('Path to data in JSON response (e.g., "data" for responses like {"data": [...]}'),
+      '#description' => $this->t('Path to data in JSON response (e.g., "data" for responses like {"data": [...]})'),
       '#default_value' => $this->configuration['response_data_path'] ?? 'data',
     ];
 
@@ -139,61 +214,101 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     return $form;
   }
 
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    $this->configuration['list_endpoint'] = $form_state->getValue('list_endpoint');
-    $this->configuration['single_endpoint'] = $form_state->getValue('single_endpoint');
-    $this->configuration['format'] = $form_state->getValue('format');
-    $this->configuration['parameters'] = $this->parseParameters($form_state->getValue('parameters'));
-    $this->configuration['response_data_path'] = $form_state->getValue('response_data_path');
+  /**
+   * {@inheritdoc}
+   */
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+    // Validate endpoints are URLs
+    $list_endpoint = $form_state->getValue('list_endpoint');
+    $push_endpoint = $form_state->getValue('push_endpoint');
+
+    if (!empty($list_endpoint) && !filter_var($list_endpoint, FILTER_VALIDATE_URL)) {
+      $form_state->setErrorByName('list_endpoint', $this->t('Please enter a valid URL for the list endpoint.'));
+    }
+
+    if (!empty($push_endpoint) && !filter_var($push_endpoint, FILTER_VALIDATE_URL)) {
+      $form_state->setErrorByName('push_endpoint', $this->t('Please enter a valid URL for the push endpoint.'));
+    }
   }
 
   /**
    * {@inheritdoc}
    */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // Validate that endpoints are provided
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    // Log that we're here
+    \Drupal::logger('external_entities_suitecrm')->emergency('🚨 submitConfigurationForm CALLED!');
+
+    // The parent class likely handles this, but let's try both approaches
+    // First, try to get values at root level (in case parent flattens them)
     $list_endpoint = $form_state->getValue('list_endpoint');
-    $single_endpoint = $form_state->getValue('single_endpoint');
 
     if (empty($list_endpoint)) {
-      $form_state->setErrorByName('list_endpoint', $this->t('List endpoint is required.'));
+      // Values might be nested - try to get the complete form state
+      $all_values = $form_state->getValues();
+      \Drupal::logger('external_entities_suitecrm')->emergency('All form values: ' . print_r($all_values, TRUE));
     }
 
-    if (empty($single_endpoint)) {
-      $form_state->setErrorByName('single_endpoint', $this->t('Single entity endpoint pattern is required.'));
-    }
+    // Save configuration from form values
+    $this->configuration['list_endpoint'] = $form_state->getValue('list_endpoint') ?: '';
+    $this->configuration['push_endpoint'] = $form_state->getValue('push_endpoint') ?: '';
+    $this->configuration['single_endpoint'] = $form_state->getValue('single_endpoint') ?: '';
+    $this->configuration['api_type'] = $form_state->getValue('api_type') ?: 'Cases';
+    $this->configuration['format'] = $form_state->getValue('format') ?: 'json';
+    $this->configuration['parameters'] = $this->parseParameters($form_state->getValue('parameters') ?: '');
+    $this->configuration['response_data_path'] = $form_state->getValue('response_data_path') ?: 'data';
 
-    // Validate that single endpoint has {id} placeholder
-    if (!empty($single_endpoint) && strpos($single_endpoint, '{id}') === FALSE) {
-      $form_state->setErrorByName('single_endpoint', $this->t('Single entity endpoint must contain {id} placeholder.'));
-    }
+    \Drupal::logger('external_entities_suitecrm')->emergency('After setting config - list_endpoint: ' . ($this->configuration['list_endpoint'] ?? 'NULL'));
   }
 
+  /**
+   * Gets HTTP headers for API requests.
+   *
+   * @return array
+   *   Array of HTTP headers.
+   */
   protected function getHttpHeaders() {
     $headers = [
-      'Accept' => 'application/json',
-      'Content-Type' => 'application/json',
+      'Accept' => 'application/vnd.api+json',
+      'Content-Type' => 'application/vnd.api+json',
     ];
 
-    // Get JWT token
+    // Get JWT token.
     $jwt_token = $this->tokenService->getAccessToken();
     if ($jwt_token) {
       $headers['Authorization'] = 'Bearer ' . $jwt_token;
-    } else {
+    }
+    else {
       \Drupal::logger('external_entities_suitecrm')->warning('JWT token not available for API request');
     }
 
-    // Get APIM subscription key from environment
+    // Get APIM subscription key from environment.
     $apim_key = getenv('APIM_SUBSCRIPTION_KEY');
     if ($apim_key) {
       $headers['Ocp-Apim-Subscription-Key'] = $apim_key;
-    } else {
-      \Drupal::logger('external_entities_suitecrm')->warning('APIM_SUBSCRIPTION_KEY environment variable not set');
+    }
+    else {
+      $apim_message = 'APIM_SUBSCRIPTION_KEY environment variable not set';
+      \Drupal::logger('external_entities_suitecrm')->warning($apim_message);
     }
 
     return $headers;
   }
 
+  /**
+   * Makes an HTTP request to the API.
+   *
+   * @param string $method
+   *   The HTTP method.
+   * @param string $endpoint
+   *   The API endpoint.
+   * @param array $params
+   *   Query parameters.
+   * @param mixed|null $body
+   *   Request body.
+   *
+   * @return array
+   *   The response data.
+   */
   protected function makeRequest($method, $endpoint, array $params = [], $body = NULL) {
     if (empty($endpoint)) {
       \Drupal::logger('external_entities_suitecrm')->error('Endpoint is empty');
@@ -209,35 +324,74 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     }
 
     try {
+      \Drupal::logger('external_entities_suitecrm')->emergency('🔥 Making @method request to @endpoint', [
+        '@method' => $method,
+        '@endpoint' => $endpoint,
+      ]);
+
+      if ($body !== NULL) {
+        \Drupal::logger('external_entities_suitecrm')->emergency('📦 Request body: @body', [
+          '@body' => json_encode($body, JSON_PRETTY_PRINT),
+        ]);
+      }
+
+      \Drupal::logger('external_entities_suitecrm')->emergency('🔑 Request headers: @headers', [
+        '@headers' => print_r($options['headers'], TRUE),
+      ]);
+
       $response = $this->httpClient->request($method, $endpoint, $options);
-      $body = (string) $response->getBody();
+      $response_body = (string) $response->getBody();
 
-      $data = json_decode($body, TRUE);
+      \Drupal::logger('external_entities_suitecrm')->info('API Response: @response', [
+        '@response' => substr($response_body, 0, 500),
+      ]);
 
-      // Extract data from response path if configured
+      $data = json_decode($response_body, TRUE);
+
+      // Extract data from response path if configured.
       if (!empty($this->configuration['response_data_path']) && isset($data[$this->configuration['response_data_path']])) {
         return $data[$this->configuration['response_data_path']];
       }
 
       return $data;
-    } catch (\Exception $e) {
-      \Drupal::logger('external_entities_suitecrm')->error('API request failed: @message', ['@message' => $e->getMessage()]);
-      return [];
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('external_entities_suitecrm')->error('API request failed: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+
+      // Try to get more details from the exception
+      if (method_exists($e, 'getResponse')) {
+        $response = $e->getResponse();
+        if ($response) {
+          $body = (string) $response->getBody();
+          \Drupal::logger('external_entities_suitecrm')->error('API Error Response Body: @body', [
+            '@body' => $body,
+          ]);
+        }
+      }
+
+      throw $e;
     }
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function query(array $parameters = [], array $sorts = [], ?int $start = NULL, ?int $length = NULL): array {
-    // Check cache first (5 minute TTL)
+    // Check cache first (5 minute TTL).
     $cache_key = 'suitecrm_cases_all';
     $cached = $this->cacheBackend->get($cache_key);
 
     if ($cached && !empty($cached->data)) {
       \Drupal::logger('external_entities_suitecrm')->info('Using cached data (expires: @expires)', [
-        '@expires' => date('Y-m-d H:i:s', $cached->expire)
+        '@expires' => date('Y-m-d H:i:s', $cached->expire),
       ]);
       $transformed = $cached->data;
-    } else {
-      // Cache miss - fetch from API
+    }
+    else {
+      // Cache miss - fetch from API.
+      \Drupal::logger('external_entities_suitecrm')->info('Cache miss - fetching from API');
 
       $endpoint = $this->configuration['list_endpoint'] ?? '';
 
@@ -246,10 +400,10 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
         $config_params = [];
       }
 
-      // Filter out parameters that SuiteCRM API doesn't support
+      // Filter out parameters that SuiteCRM API doesn't support.
       $filtered_params = [];
       foreach ($parameters as $key => $value) {
-        // Skip offset, limit, and sort parameters
+        // Skip offset, limit, and sort parameters.
         if (!in_array($key, ['offset', 'limit']) && strpos($key, 'sort') !== 0) {
           $filtered_params[$key] = $value;
         }
@@ -259,44 +413,64 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
 
       $result = $this->makeRequest('GET', $endpoint, $params);
 
-      // Transform JSON:API format to flat structure
+      // Transform JSON:API format to flat structure.
       $transformed = [];
       if (is_array($result)) {
         foreach ($result as $item) {
           if (isset($item['attributes']) && isset($item['id'])) {
-            // Flatten: merge id from attributes (case_number) and all attributes
-            $flat = ['id' => $item['attributes']['case_number']] + $item['attributes'];
-            // Use case_number as key so load() can find it
-            $key = $item['attributes']['case_number'];
+            // Store BOTH case_number AND UUID - CRITICAL for updates!
+            $flat = [
+              'id' => $item['attributes']['case_number'] ?? $item['id'],
+              'uuid' => $item['id'],
+            ];
+
+            // Add attributes, decoding HTML entities for text fields
+            foreach ($item['attributes'] as $key => $value) {
+              if (is_string($value)) {
+                // Decode HTML entities (e.g., &lt;p&gt; becomes <p>)
+                $flat[$key] = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+              } else {
+                $flat[$key] = $value;
+              }
+            }
+
+            // Use case_number as key so load() can find it.
+            $key = $item['attributes']['case_number'] ?? $item['id'];
             $transformed[$key] = $flat;
           }
         }
 
-        // Cache for 5 minutes (300 seconds)
+        // Cache for 5 minutes (300 seconds).
         $this->cacheBackend->set($cache_key, $transformed, time() + 300);
+        \Drupal::logger('external_entities_suitecrm')->info('Cached @count cases for 5 minutes', [
+          '@count' => count($transformed),
+        ]);
       }
     }
 
-    // Apply sorting in PHP since API doesn't support it
+    // Apply sorting in PHP since API doesn't support it.
     if (!empty($sorts)) {
       $sort_field = array_key_first($sorts);
       $sort_direction = $sorts[$sort_field];
-      usort($transformed, function($a, $b) use ($sort_field, $sort_direction) {
+      usort($transformed, function ($a, $b) use ($sort_field, $sort_direction) {
         $cmp = ($a[$sort_field] ?? '') <=> ($b[$sort_field] ?? '');
         return $sort_direction === 'DESC' ? -$cmp : $cmp;
       });
     }
 
-    // Apply pagination in PHP
+    // Apply pagination in PHP.
     if ($start !== NULL || $length !== NULL) {
       $start = $start ?? 0;
       $length = $length ?? count($transformed);
-      $transformed = array_slice($transformed, $start, $length, true);
+      $transformed = array_slice($transformed, $start, $length, TRUE);
     }
 
     return $transformed;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function querySource(array $parameters = [], array $sorts = [], ?int $start = NULL, ?int $length = NULL): array {
     return $this->query($parameters, $sorts, $start, $length);
   }
@@ -304,12 +478,6 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
   /**
    * {@inheritdoc}
    */
-  public function countQuery(array $parameters = []): int {
-    // Get all entities and count them
-    $all_entities = $this->query($parameters);
-    return count($all_entities);
-  }
-
   public function transliterateDrupalFilters(array $parameters, array $context = []): array {
     $translated = [];
     foreach ($parameters as $filter) {
@@ -321,6 +489,7 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
         case '=':
           $translated['filter[' . $field . '][eq]'] = $value;
           break;
+
         default:
           $translated['filter[' . $field . '][eq]'] = $value;
       }
@@ -328,13 +497,16 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     return $translated;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function load(string|int $id): ?array {
-    // Use cached data from loadMultiple to avoid rate limiting
+    // Use cached data from loadMultiple to avoid rate limiting.
     if ($this->casesCache === NULL) {
       $this->casesCache = $this->query();
     }
 
-    // Look for the case by ID in the cache
+    // Look for the case by ID in the cache.
     foreach ($this->casesCache as $case) {
       if (isset($case['id']) && $case['id'] == $id) {
         return $case;
@@ -344,16 +516,19 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     return NULL;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function loadMultiple(?array $ids = NULL): array {
-    // Always fetch all cases in one API call to avoid rate limiting
+    // Always fetch all cases in one API call to avoid rate limiting.
     $all_cases = $this->query();
 
-    // If no specific IDs requested, return all
+    // If no specific IDs requested, return all.
     if ($ids === NULL) {
       return $all_cases;
     }
 
-    // Filter to only requested IDs
+    // Filter to only requested IDs.
     $filtered = [];
     foreach ($ids as $id) {
       if (isset($all_cases[$id])) {
@@ -363,25 +538,266 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     return $filtered;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function save(ExternalEntityInterface $entity): int {
-    // Clear cache when saving
-    $this->clearCache();
-    return SAVED_NEW;
-  }
+    \Drupal::logger('external_entities_suitecrm')->emergency('🔥 SAVE METHOD CALLED! Entity: ' . $entity->id());
 
-  public function delete(ExternalEntityInterface $entity): void {
-    // Clear cache when deleting
-    $this->clearCache();
+    $id = $entity->id();
+    $is_new = $entity->isNew();
+
+    try {
+      // Prepare the data to send to the API.
+      $data = $this->prepareEntityData($entity);
+
+      // CRITICAL: For both POST and PATCH, use the SAME push_endpoint
+      // The module type goes in the JSON body, NOT in the URL!
+      $endpoint = $this->configuration['push_endpoint'] ?? '';
+
+      if ($is_new) {
+        $method = 'POST';
+        \Drupal::logger('external_entities_suitecrm')->info('Creating new entity');
+      }
+      else {
+        $method = 'PATCH';
+        \Drupal::logger('external_entities_suitecrm')->info('Updating entity @id', ['@id' => $id]);
+      }
+
+      \Drupal::logger('external_entities_suitecrm')->info('Sending @method to @endpoint', [
+        '@method' => $method,
+        '@endpoint' => $endpoint,
+      ]);
+
+      // Write to file to bypass any logging issues
+      file_put_contents('/tmp/drupal_patch_data.json', json_encode($data, JSON_PRETTY_PRINT));
+      \Drupal::logger('external_entities_suitecrm')->emergency('🔍 Data written to /tmp/drupal_patch_data.json');
+
+      \Drupal::logger('external_entities_suitecrm')->info('Sending data: @data', [
+        '@data' => json_encode($data),
+      ]);
+
+      $result = $this->makeRequest($method, $endpoint, [], $data);
+
+      // Log what the API returned
+      \Drupal::logger('external_entities_suitecrm')->emergency('📥 API Response: ' . print_r($result, TRUE));
+
+      // Clear cache after save (regardless of response)
+      $this->clearCache();
+
+      if (!empty($result)) {
+        \Drupal::logger('external_entities_suitecrm')->info('Successfully saved entity @id', [
+          '@id' => $id,
+        ]);
+
+        \Drupal::messenger()->addMessage($this->t('Case @id has been saved successfully.', [
+          '@id' => $id,
+        ]));
+
+        return $is_new ? SAVED_NEW : SAVED_UPDATED;
+      }
+      else {
+        \Drupal::logger('external_entities_suitecrm')->warning('Empty response when saving entity @id, but no error thrown', [
+          '@id' => $id,
+        ]);
+        return SAVED_UPDATED;
+      }
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('external_entities_suitecrm')->error('Failed to save entity @id: @message', [
+        '@id' => $id,
+        '@message' => $e->getMessage(),
+      ]);
+
+      \Drupal::messenger()->addError($this->t('Failed to save case: @message', [
+        '@message' => $e->getMessage(),
+      ]));
+
+      throw $e;
+    }
   }
 
   /**
-   * Clear the cached cases data.
+   * {@inheritdoc}
+   */
+  public function delete(ExternalEntityInterface $entity): void {
+    $id = $entity->id();
+
+    try {
+      // For DELETE, we also use the push_endpoint with the data in body
+      $endpoint = $this->configuration['push_endpoint'] ?? '';
+
+      $entity_data = $this->load($id);
+      if (!isset($entity_data['uuid'])) {
+        throw new \Exception('Cannot delete entity: UUID not found for ID ' . $id);
+      }
+
+      $api_type = $this->configuration['api_type'] ?? 'Cases';
+
+      $data = [
+        'data' => [
+          'type' => $api_type,
+          'id' => $entity_data['uuid'],
+        ],
+      ];
+
+      \Drupal::logger('external_entities_suitecrm')->info('Deleting entity @id', ['@id' => $id]);
+
+      $this->makeRequest('DELETE', $endpoint, [], $data);
+
+      // Clear cache when deleting.
+      $this->clearCache();
+
+      \Drupal::logger('external_entities_suitecrm')->info('Successfully deleted entity @id', [
+        '@id' => $id,
+      ]);
+
+      \Drupal::messenger()->addMessage($this->t('Case @id has been deleted successfully.', [
+        '@id' => $id,
+      ]));
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('external_entities_suitecrm')->error('Failed to delete entity @id: @message', [
+        '@id' => $id,
+        '@message' => $e->getMessage(),
+      ]);
+
+      \Drupal::messenger()->addError($this->t('Failed to delete case: @message', [
+        '@message' => $e->getMessage(),
+      ]));
+
+      throw $e;
+    }
+  }
+
+  /**
+   * Prepares entity data for API submission.
+   *
+   * @param \Drupal\external_entities\Entity\ExternalEntityInterface $entity
+   *   The entity to prepare.
+   *
+   * @return array
+   *   The prepared data array in JSON:API format.
+   */
+  protected function prepareEntityData(ExternalEntityInterface $entity) {
+    \Drupal::logger('external_entities_suitecrm')->emergency('🎬 prepareEntityData() CALLED - Start building data array');
+
+    $api_type = $this->configuration['api_type'] ?? 'Cases';
+
+    $data = [
+      'data' => [
+        'type' => $api_type,
+        'attributes' => [],
+      ],
+    ];
+
+    \Drupal::logger('external_entities_suitecrm')->emergency('Initial data structure: ' . print_r($data, TRUE));
+
+    // Get field definitions.
+    $field_definitions = $entity->getFieldDefinitions();
+
+    // Fields to always skip (system fields + fields that shouldn't be updated)
+    $skip_fields = [
+      'id',
+      'uuid',
+      'type',
+      'langcode',
+      'default_langcode',
+      'created',
+      'changed',
+      'field_date',           // date_entered - shouldn't update creation date
+      'field_last_modified',  // date_modified - API should set this
+    ];
+
+    foreach ($field_definitions as $field_name => $field_definition) {
+      // Skip computed, read-only, and excluded fields
+      if (in_array($field_name, $skip_fields) || $field_definition->isComputed() || $field_definition->isReadOnly()) {
+        continue;
+      }
+
+      // Get field value
+      if ($entity->hasField($field_name)) {
+        $field_item_list = $entity->get($field_name);
+
+        if (!$field_item_list->isEmpty()) {
+          $field_value = $field_item_list->value;
+
+          if ($field_value !== NULL && $field_value !== '') {
+            // Map Drupal field names to API field names
+            $api_field_name = $this->mapFieldName($field_name);
+            $data['data']['attributes'][$api_field_name] = $field_value;
+          }
+        }
+      }
+    }
+
+    // Add the UUID for updates.
+    if (!$entity->isNew()) {
+      \Drupal::logger('external_entities_suitecrm')->emergency('🔍 Entity is NOT new, looking for UUID...');
+      $entity_data = $this->load($entity->id());
+      \Drupal::logger('external_entities_suitecrm')->emergency('🔍 Loaded entity data: ' . print_r($entity_data, TRUE));
+
+      if (isset($entity_data['uuid'])) {
+        $data['data']['id'] = $entity_data['uuid'];
+        \Drupal::logger('external_entities_suitecrm')->emergency('✅ Added UUID to request: ' . $entity_data['uuid']);
+        \Drupal::logger('external_entities_suitecrm')->emergency('✅ Data array IMMEDIATELY after adding UUID: ' . print_r($data, TRUE));
+      } else {
+        \Drupal::logger('external_entities_suitecrm')->emergency('❌ UUID not found in entity_data!');
+      }
+    } else {
+      \Drupal::logger('external_entities_suitecrm')->emergency('ℹ️ Entity is new, no UUID needed');
+    }
+
+    \Drupal::logger('external_entities_suitecrm')->emergency('🏁 prepareEntityData() COMPLETE - Returning data: ' . print_r($data, TRUE));
+
+    return $data;
+  }
+
+  /**
+   * Maps Drupal field names to API field names.
+   *
+   * @param string $drupal_field_name
+   *   The Drupal field name.
+   *
+   * @return string
+   *   The API field name.
+   */
+  protected function mapFieldName($drupal_field_name) {
+    // Map Drupal field names to SuiteCRM API field names
+    $mapping = [
+      'title' => 'name',
+      'field_name' => 'name',
+      'field_case_number' => 'case_number',
+      'field_date' => 'date_entered',
+      'field_last_modified' => 'date_modified',
+      'field_description' => 'description',
+      'field_priority' => 'priority',
+      'field_status' => 'status',
+      'default_langcode' => 'langcode', // Keep but probably won't be used by SuiteCRM
+    ];
+
+    return $mapping[$drupal_field_name] ?? $drupal_field_name;
+  }
+
+  /**
+   * Clears the cached cases data.
    */
   public function clearCache() {
     $cache_key = 'suitecrm_cases_all';
     $this->cacheBackend->delete($cache_key);
+    $this->casesCache = NULL;
+    \Drupal::logger('external_entities_suitecrm')->emergency('✅ Cache cleared after save!');
   }
 
+  /**
+   * Parses parameters from text format.
+   *
+   * @param string $text
+   *   Text with parameters in key=value format.
+   *
+   * @return array
+   *   Parsed parameters array.
+   */
   protected function parseParameters($text) {
     if (empty($text)) {
       return [];
@@ -397,7 +813,7 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
       }
 
       if (strpos($line, '=') !== FALSE) {
-        list($key, $value) = explode('=', $line, 2);
+        [$key, $value] = explode('=', $line, 2);
         $parameters[trim($key)] = trim($value);
       }
     }
@@ -405,8 +821,17 @@ class SuiteCrmStorageClient extends StorageClientBase implements PluginFormInter
     return $parameters;
   }
 
+  /**
+   * Formats parameters array to text format.
+   *
+   * @param mixed $parameters
+   *   Parameters array or string.
+   *
+   * @return string
+   *   Formatted parameters string.
+   */
   protected function formatParameters($parameters) {
-    // Handle string input (from config)
+    // Handle string input (from config).
     if (is_string($parameters)) {
       return $parameters;
     }
