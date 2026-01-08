@@ -67,19 +67,13 @@ function external_entities_suitecrm_entity_presave(Drupal\Core\Entity\EntityInte
   if ($entity->id() !== 'suitecrm_case') {
     return;
   }
-
-  \Drupal::logger('external_entities_suitecrm')->emergency('🎯 PRESAVE HOOK! Entity: ' . $entity->id());
-
+  
   // Get current data_aggregator
   $data_aggregator = $entity->get('data_aggregator');
-
-  \Drupal::logger('external_entities_suitecrm')->emergency('Current data_aggregator: ' . print_r($data_aggregator, TRUE));
 
   // Check if storage client config is empty
   if (isset($data_aggregator['config']['storage_clients'][0]['config']) &&
     empty($data_aggregator['config']['storage_clients'][0]['config'])) {
-
-    \Drupal::logger('external_entities_suitecrm')->emergency('⚠️ Storage config is EMPTY - will be cleared on save!');
 
     // Load the CURRENT saved config from database
     $current_entity = \Drupal::entityTypeManager()
@@ -89,14 +83,9 @@ function external_entities_suitecrm_entity_presave(Drupal\Core\Entity\EntityInte
     if ($current_entity) {
       $current_aggregator = $current_entity->get('data_aggregator');
       if (!empty($current_aggregator['config']['storage_clients'][0]['config'])) {
-        \Drupal::logger('external_entities_suitecrm')->emergency('✓ Found existing config in DB - preserving it!');
-        \Drupal::logger('external_entities_suitecrm')->emergency('Existing config: ' . print_r($current_aggregator['config']['storage_clients'][0]['config'], TRUE));
-
         // Restore the config
         $data_aggregator['config']['storage_clients'][0]['config'] = $current_aggregator['config']['storage_clients'][0]['config'];
         $entity->set('data_aggregator', $data_aggregator);
-
-        \Drupal::logger('external_entities_suitecrm')->emergency('✓ Config preserved!');
       }
     }
   }
@@ -106,12 +95,8 @@ function external_entities_suitecrm_entity_presave(Drupal\Core\Entity\EntityInte
  * Implements hook_form_FORM_ID_alter() for external_entity_type_edit_form.
  */
 function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  \Drupal::logger('external_entities_suitecrm')->emergency('🎯 FORM ALTER CALLED! Form ID: ' . $form_id);
-
   // Add our submit handler AFTER ::save (at the end)
   $form['actions']['submit']['#submit'][] = 'external_entities_suitecrm_save_storage_config';
-
-  \Drupal::logger('external_entities_suitecrm')->emergency('Submit handlers: ' . print_r($form['actions']['submit']['#submit'], TRUE));
 
   // Add our submit handler to ensure persistent is always set
   array_unshift($form['actions']['submit']['#submit'], 'external_entities_suitecrm_ensure_persistent_submit');
@@ -246,15 +231,10 @@ function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$
  */
 function external_entities_suitecrm_ensure_persistent_submit($form, FormStateInterface $form_state) {
   $entity = $form_state->getFormObject()->getEntity();
-  $entity_id = $entity->id();
 
   // Set persistent in the form state so it gets saved with the entity
   // This doesn't work because the entity class filters it out, but we try anyway
   $entity->set('persistent', TRUE);
-
-  \Drupal::logger('external_entities_suitecrm')->info('Pre-save: Attempting to set persistent=TRUE for entity type: @id', [
-    '@id' => $entity_id,
-  ]);
 }
 
 /**
@@ -263,19 +243,13 @@ function external_entities_suitecrm_ensure_persistent_submit($form, FormStateInt
  * This runs AFTER ::save, so we need to reload and re-save the entity.
  */
 function external_entities_suitecrm_save_storage_config($form, FormStateInterface $form_state) {
-  \Drupal::logger('external_entities_suitecrm')->emergency('🚀 SUBMIT HANDLER CALLED (after ::save)!');
-
   try {
     // Log ALL form values to see the complete structure
     $all_values = $form_state->getValues();
     $all_keys = array_keys($all_values);
-    \Drupal::logger('external_entities_suitecrm')->emergency('All form value keys: ' . implode(', ', $all_keys));
 
     // Check raw user input
     $user_input = $form_state->getUserInput();
-    if (isset($user_input['storages_tab'])) {
-      \Drupal::logger('external_entities_suitecrm')->emergency('User input storages_tab: ' . print_r($user_input['storages_tab'], TRUE));
-    }
 
     $entity = $form_state->getFormObject()->getEntity();
     $entity_id = $entity->id();
@@ -284,26 +258,11 @@ function external_entities_suitecrm_save_storage_config($form, FormStateInterfac
     $storages_tab = $form_state->getValue('storages_tab');
 
     if (empty($storages_tab)) {
-      \Drupal::logger('external_entities_suitecrm')->emergency('❌ storages_tab is completely empty!');
       return;
-    }
-
-    \Drupal::logger('external_entities_suitecrm')->emergency('storages_tab keys: ' . implode(', ', array_keys($storages_tab)));
-
-    if (isset($storages_tab['config'])) {
-      \Drupal::logger('external_entities_suitecrm')->emergency('storages_tab[config] keys: ' . implode(', ', array_keys($storages_tab['config'])));
-
-      if (isset($storages_tab['config']['storage_clients'])) {
-        \Drupal::logger('external_entities_suitecrm')->emergency('storage_clients count: ' . count($storages_tab['config']['storage_clients']));
-        \Drupal::logger('external_entities_suitecrm')->emergency('storage_clients[0]: ' . print_r($storages_tab['config']['storage_clients'][0], TRUE));
-      }
     }
 
     if (!empty($storages_tab) && isset($storages_tab['config']['storage_clients'][0]['config'])) {
       $storage_config = $storages_tab['config']['storage_clients'][0]['config'];
-
-      \Drupal::logger('external_entities_suitecrm')->emergency('📦 Storage config keys: ' . (is_array($storage_config) ? implode(', ', array_keys($storage_config)) : 'NOT AN ARRAY'));
-      \Drupal::logger('external_entities_suitecrm')->emergency('📦 Storage config values: ' . print_r($storage_config, TRUE));
 
       if (!empty($storage_config)) {
         // Reload the entity that was just saved
@@ -330,18 +289,9 @@ function external_entities_suitecrm_save_storage_config($form, FormStateInterfac
 
         // Save again
         $saved_entity->save();
-
-        \Drupal::logger('external_entities_suitecrm')->emergency('✅ Re-saved entity with storage config!');
-      } else {
-        \Drupal::logger('external_entities_suitecrm')->emergency('⚠️ Storage config was EMPTY from form');
       }
-    } else {
-      \Drupal::logger('external_entities_suitecrm')->emergency('❌ storages_tab[config][storage_clients][0][config] path not found');
     }
-
-  } catch (\Exception $e) {
-    \Drupal::logger('external_entities_suitecrm')->emergency('ERROR: ' . $e->getMessage());
-  }
+  } catch (\Exception $e) {}
 }
 
 /**
@@ -374,59 +324,12 @@ function external_entities_suitecrm_links_form_submit($form, FormStateInterface 
   // Save links if provided
   if (!empty($links)) {
     $config->set('links', $links);
-
-    \Drupal::logger('external_entities_suitecrm')->info('Saved links directly to config for @id: @links', [
-      '@id' => $entity_id,
-      '@links' => print_r($links, TRUE),
-    ]);
   }
 
   // Save the config
   $config->save();
 
-  \Drupal::logger('external_entities_suitecrm')->info('Set persistent=TRUE for entity type: @id', [
-    '@id' => $entity_id,
-  ]);
-
   // Clear all caches to rebuild routes
   drupal_flush_all_caches();
 
-  \Drupal::messenger()->addStatus(t('Entity configuration saved with persistent storage enabled.'));
-
-  if (!empty($links)) {
-    \Drupal::messenger()->addStatus(t('Entity links have been configured. Routes have been rebuilt.'));
-  }
-
-  // Verify the settings were saved
-  $config_verify = \Drupal::config('external_entities.external_entity_type.' . $entity_id);
-  $saved_links = $config_verify->get('links');
-  $persistent = $config_verify->get('persistent');
-
-  if (empty($saved_links)) {
-    \Drupal::logger('external_entities_suitecrm')->warning('Warning: Entity @id was updated but has no links in config!', [
-      '@id' => $entity_id,
-    ]);
-  }
-
-  if ($persistent !== TRUE) {
-    \Drupal::logger('external_entities_suitecrm')->error('ERROR: Failed to set persistent=TRUE for entity @id!', [
-      '@id' => $entity_id,
-    ]);
-    \Drupal::messenger()->addError(t('Warning: Persistent storage may not be enabled correctly. Check logs.'));
-  } else {
-    \Drupal::messenger()->addStatus(t('Persistent storage is enabled - changes will be saved back to the API.'));
-  }
-}
-
-/**
- * Implements hook_entity_update().
- */
-function external_entities_suitecrm_entity_update(EntityInterface $entity) {
-  // Log when any of our external entities are updated
-  if ($entity->getEntityTypeId() === 'suitecrm_case') {
-    \Drupal::logger('external_entities_suitecrm')->info('Entity @type @id was updated', [
-      '@type' => $entity->getEntityTypeId(),
-      '@id' => $entity->id(),
-    ]);
-  }
 }

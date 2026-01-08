@@ -733,22 +733,22 @@ class SuiteCrmStorageClient extends StorageClientBase {
 
     // Add the UUID for updates.
     if (!$entity->isNew()) {
-      \Drupal::logger('external_entities_suitecrm')->emergency('🔍 Entity is NOT new, looking for UUID...');
+      \Drupal::logger('external_entities_suitecrm')->emergency('Entity is NOT new, looking for UUID...');
       $entity_data = $this->load($entity->id());
-      \Drupal::logger('external_entities_suitecrm')->emergency('🔍 Loaded entity data: ' . print_r($entity_data, TRUE));
+      \Drupal::logger('external_entities_suitecrm')->emergency('Loaded entity data: ' . print_r($entity_data, TRUE));
 
       if (isset($entity_data['uuid'])) {
         $data['data']['id'] = $entity_data['uuid'];
-        \Drupal::logger('external_entities_suitecrm')->emergency('✅ Added UUID to request: ' . $entity_data['uuid']);
-        \Drupal::logger('external_entities_suitecrm')->emergency('✅ Data array IMMEDIATELY after adding UUID: ' . print_r($data, TRUE));
+        \Drupal::logger('external_entities_suitecrm')->emergency('Added UUID to request: ' . $entity_data['uuid']);
+        \Drupal::logger('external_entities_suitecrm')->emergency('Data array IMMEDIATELY after adding UUID: ' . print_r($data, TRUE));
       } else {
-        \Drupal::logger('external_entities_suitecrm')->emergency('❌ UUID not found in entity_data!');
+        \Drupal::logger('external_entities_suitecrm')->emergency('UUID not found in entity_data!');
       }
     } else {
-      \Drupal::logger('external_entities_suitecrm')->emergency('ℹ️ Entity is new, no UUID needed');
+      \Drupal::logger('external_entities_suitecrm')->emergency('Entity is new, no UUID needed');
     }
 
-    \Drupal::logger('external_entities_suitecrm')->emergency('🏁 prepareEntityData() COMPLETE - Returning data: ' . print_r($data, TRUE));
+    \Drupal::logger('external_entities_suitecrm')->emergency('prepareEntityData() COMPLETE - Returning data: ' . print_r($data, TRUE));
 
     return $data;
   }
@@ -786,7 +786,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
     $cache_key = 'suitecrm_cases_all';
     $this->cacheBackend->delete($cache_key);
     $this->casesCache = NULL;
-    \Drupal::logger('external_entities_suitecrm')->emergency('✅ Cache cleared after save!');
+    \Drupal::logger('external_entities_suitecrm')->emergency('Cache cleared after save!');
   }
 
   /**
