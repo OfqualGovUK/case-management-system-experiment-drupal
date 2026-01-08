@@ -235,9 +235,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // Log that we're here
-    \Drupal::logger('external_entities_suitecrm')->emergency('🚨 submitConfigurationForm CALLED!');
-
     // The parent class likely handles this, but let's try both approaches
     // First, try to get values at root level (in case parent flattens them)
     $list_endpoint = $form_state->getValue('list_endpoint');
@@ -245,7 +242,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
     if (empty($list_endpoint)) {
       // Values might be nested - try to get the complete form state
       $all_values = $form_state->getValues();
-      \Drupal::logger('external_entities_suitecrm')->emergency('All form values: ' . print_r($all_values, TRUE));
     }
 
     // Save configuration from form values
@@ -256,8 +252,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
     $this->configuration['format'] = $form_state->getValue('format') ?: 'json';
     $this->configuration['parameters'] = $this->parseParameters($form_state->getValue('parameters') ?: '');
     $this->configuration['response_data_path'] = $form_state->getValue('response_data_path') ?: 'data';
-
-    \Drupal::logger('external_entities_suitecrm')->emergency('After setting config - list_endpoint: ' . ($this->configuration['list_endpoint'] ?? 'NULL'));
   }
 
   /**
@@ -277,9 +271,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
     if ($jwt_token) {
       $headers['Authorization'] = 'Bearer ' . $jwt_token;
     }
-    else {
-      \Drupal::logger('external_entities_suitecrm')->warning('JWT token not available for API request');
-    }
 
     // Get APIM subscription key from environment.
     $apim_key = getenv('APIM_SUBSCRIPTION_KEY');
@@ -288,7 +279,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
     }
     else {
       $apim_message = 'APIM_SUBSCRIPTION_KEY environment variable not set';
-      \Drupal::logger('external_entities_suitecrm')->warning($apim_message);
     }
 
     return $headers;
@@ -311,7 +301,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
    */
   protected function makeRequest($method, $endpoint, array $params = [], $body = NULL) {
     if (empty($endpoint)) {
-      \Drupal::logger('external_entities_suitecrm')->error('Endpoint is empty');
       return [];
     }
 
@@ -324,28 +313,8 @@ class SuiteCrmStorageClient extends StorageClientBase {
     }
 
     try {
-      \Drupal::logger('external_entities_suitecrm')->emergency('🔥 Making @method request to @endpoint', [
-        '@method' => $method,
-        '@endpoint' => $endpoint,
-      ]);
-
-      if ($body !== NULL) {
-        \Drupal::logger('external_entities_suitecrm')->emergency('📦 Request body: @body', [
-          '@body' => json_encode($body, JSON_PRETTY_PRINT),
-        ]);
-      }
-
-      \Drupal::logger('external_entities_suitecrm')->emergency('🔑 Request headers: @headers', [
-        '@headers' => print_r($options['headers'], TRUE),
-      ]);
-
       $response = $this->httpClient->request($method, $endpoint, $options);
       $response_body = (string) $response->getBody();
-
-      \Drupal::logger('external_entities_suitecrm')->info('API Response: @response', [
-        '@response' => substr($response_body, 0, 500),
-      ]);
-
       $data = json_decode($response_body, TRUE);
 
       // Extract data from response path if configured.
@@ -356,21 +325,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
       return $data;
     }
     catch (\Exception $e) {
-      \Drupal::logger('external_entities_suitecrm')->error('API request failed: @message', [
-        '@message' => $e->getMessage(),
-      ]);
-
-      // Try to get more details from the exception
-      if (method_exists($e, 'getResponse')) {
-        $response = $e->getResponse();
-        if ($response) {
-          $body = (string) $response->getBody();
-          \Drupal::logger('external_entities_suitecrm')->error('API Error Response Body: @body', [
-            '@body' => $body,
-          ]);
-        }
-      }
-
       throw $e;
     }
   }
@@ -384,17 +338,11 @@ class SuiteCrmStorageClient extends StorageClientBase {
     $cached = $this->cacheBackend->get($cache_key);
 
     if ($cached && !empty($cached->data)) {
-      \Drupal::logger('external_entities_suitecrm')->info('Using cached data (expires: @expires)', [
-        '@expires' => date('Y-m-d H:i:s', $cached->expire),
-      ]);
       $transformed = $cached->data;
     }
     else {
       // Cache miss - fetch from API.
-      \Drupal::logger('external_entities_suitecrm')->info('Cache miss - fetching from API');
-
       $endpoint = $this->configuration['list_endpoint'] ?? '';
-
       $config_params = $this->configuration['parameters'] ?? [];
       if (!is_array($config_params)) {
         $config_params = [];
@@ -442,9 +390,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
 
         // Cache for 5 minutes (300 seconds).
         $this->cacheBackend->set($cache_key, $transformed, time() + 300);
-        \Drupal::logger('external_entities_suitecrm')->info('Cached @count cases for 5 minutes', [
-          '@count' => count($transformed),
-        ]);
       }
     }
 
@@ -542,8 +487,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function save(ExternalEntityInterface $entity): int {
-    \Drupal::logger('external_entities_suitecrm')->emergency('🔥 SAVE METHOD CALLED! Entity: ' . $entity->id());
-
     $id = $entity->id();
     $is_new = $entity->isNew();
 
@@ -551,68 +494,29 @@ class SuiteCrmStorageClient extends StorageClientBase {
       // Prepare the data to send to the API.
       $data = $this->prepareEntityData($entity);
 
-      // CRITICAL: For both POST and PATCH, use the SAME push_endpoint
       // The module type goes in the JSON body, NOT in the URL!
       $endpoint = $this->configuration['push_endpoint'] ?? '';
 
       if ($is_new) {
         $method = 'POST';
-        \Drupal::logger('external_entities_suitecrm')->info('Creating new entity');
       }
       else {
         $method = 'PATCH';
-        \Drupal::logger('external_entities_suitecrm')->info('Updating entity @id', ['@id' => $id]);
       }
 
-      \Drupal::logger('external_entities_suitecrm')->info('Sending @method to @endpoint', [
-        '@method' => $method,
-        '@endpoint' => $endpoint,
-      ]);
-
-      // Write to file to bypass any logging issues
-      file_put_contents('/tmp/drupal_patch_data.json', json_encode($data, JSON_PRETTY_PRINT));
-      \Drupal::logger('external_entities_suitecrm')->emergency('🔍 Data written to /tmp/drupal_patch_data.json');
-
-      \Drupal::logger('external_entities_suitecrm')->info('Sending data: @data', [
-        '@data' => json_encode($data),
-      ]);
-
       $result = $this->makeRequest($method, $endpoint, [], $data);
-
-      // Log what the API returned
-      \Drupal::logger('external_entities_suitecrm')->emergency('📥 API Response: ' . print_r($result, TRUE));
 
       // Clear cache after save (regardless of response)
       $this->clearCache();
 
       if (!empty($result)) {
-        \Drupal::logger('external_entities_suitecrm')->info('Successfully saved entity @id', [
-          '@id' => $id,
-        ]);
-
-        \Drupal::messenger()->addMessage($this->t('Case @id has been saved successfully.', [
-          '@id' => $id,
-        ]));
-
         return $is_new ? SAVED_NEW : SAVED_UPDATED;
       }
       else {
-        \Drupal::logger('external_entities_suitecrm')->warning('Empty response when saving entity @id, but no error thrown', [
-          '@id' => $id,
-        ]);
         return SAVED_UPDATED;
       }
     }
     catch (\Exception $e) {
-      \Drupal::logger('external_entities_suitecrm')->error('Failed to save entity @id: @message', [
-        '@id' => $id,
-        '@message' => $e->getMessage(),
-      ]);
-
-      \Drupal::messenger()->addError($this->t('Failed to save case: @message', [
-        '@message' => $e->getMessage(),
-      ]));
-
       throw $e;
     }
   }
@@ -641,31 +545,12 @@ class SuiteCrmStorageClient extends StorageClientBase {
         ],
       ];
 
-      \Drupal::logger('external_entities_suitecrm')->info('Deleting entity @id', ['@id' => $id]);
-
       $this->makeRequest('DELETE', $endpoint, [], $data);
 
       // Clear cache when deleting.
       $this->clearCache();
-
-      \Drupal::logger('external_entities_suitecrm')->info('Successfully deleted entity @id', [
-        '@id' => $id,
-      ]);
-
-      \Drupal::messenger()->addMessage($this->t('Case @id has been deleted successfully.', [
-        '@id' => $id,
-      ]));
     }
     catch (\Exception $e) {
-      \Drupal::logger('external_entities_suitecrm')->error('Failed to delete entity @id: @message', [
-        '@id' => $id,
-        '@message' => $e->getMessage(),
-      ]);
-
-      \Drupal::messenger()->addError($this->t('Failed to delete case: @message', [
-        '@message' => $e->getMessage(),
-      ]));
-
       throw $e;
     }
   }
@@ -680,8 +565,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
    *   The prepared data array in JSON:API format.
    */
   protected function prepareEntityData(ExternalEntityInterface $entity) {
-    \Drupal::logger('external_entities_suitecrm')->emergency('🎬 prepareEntityData() CALLED - Start building data array');
-
     $api_type = $this->configuration['api_type'] ?? 'Cases';
 
     $data = [
@@ -690,8 +573,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
         'attributes' => [],
       ],
     ];
-
-    \Drupal::logger('external_entities_suitecrm')->emergency('Initial data structure: ' . print_r($data, TRUE));
 
     // Get field definitions.
     $field_definitions = $entity->getFieldDefinitions();
@@ -733,22 +614,11 @@ class SuiteCrmStorageClient extends StorageClientBase {
 
     // Add the UUID for updates.
     if (!$entity->isNew()) {
-      \Drupal::logger('external_entities_suitecrm')->emergency('Entity is NOT new, looking for UUID...');
       $entity_data = $this->load($entity->id());
-      \Drupal::logger('external_entities_suitecrm')->emergency('Loaded entity data: ' . print_r($entity_data, TRUE));
-
       if (isset($entity_data['uuid'])) {
         $data['data']['id'] = $entity_data['uuid'];
-        \Drupal::logger('external_entities_suitecrm')->emergency('Added UUID to request: ' . $entity_data['uuid']);
-        \Drupal::logger('external_entities_suitecrm')->emergency('Data array IMMEDIATELY after adding UUID: ' . print_r($data, TRUE));
-      } else {
-        \Drupal::logger('external_entities_suitecrm')->emergency('UUID not found in entity_data!');
       }
-    } else {
-      \Drupal::logger('external_entities_suitecrm')->emergency('Entity is new, no UUID needed');
     }
-
-    \Drupal::logger('external_entities_suitecrm')->emergency('prepareEntityData() COMPLETE - Returning data: ' . print_r($data, TRUE));
 
     return $data;
   }
@@ -786,7 +656,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
     $cache_key = 'suitecrm_cases_all';
     $this->cacheBackend->delete($cache_key);
     $this->casesCache = NULL;
-    \Drupal::logger('external_entities_suitecrm')->emergency('Cache cleared after save!');
   }
 
   /**

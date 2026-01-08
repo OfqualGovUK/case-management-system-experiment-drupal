@@ -67,7 +67,7 @@ function external_entities_suitecrm_entity_presave(Drupal\Core\Entity\EntityInte
   if ($entity->id() !== 'suitecrm_case') {
     return;
   }
-  
+
   // Get current data_aggregator
   $data_aggregator = $entity->get('data_aggregator');
 
@@ -317,7 +317,6 @@ function external_entities_suitecrm_links_form_submit($form, FormStateInterface 
   // Open config directly
   $config = \Drupal::configFactory()->getEditable('external_entities.external_entity_type.' . $entity_id);
 
-  // CRITICAL: Set persistent to TRUE
   // This is the key setting that enables saves back to the API
   $config->set('persistent', TRUE);
 
