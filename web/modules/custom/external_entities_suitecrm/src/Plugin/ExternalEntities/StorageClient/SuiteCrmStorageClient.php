@@ -47,13 +47,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
   protected $cacheBackend;
 
   /**
-   * Cached cases data.
-   *
-   * @var array|null
-   */
-  protected $casesCache = NULL;
-
-  /**
    * Constructs a SuiteCrmStorageClient object.
    *
    * @param array $configuration
@@ -393,11 +386,14 @@ class SuiteCrmStorageClient extends StorageClientBase {
       }
     }
 
+    $result = $transformed;
+
     // Apply sorting in PHP since API doesn't support it.
     if (!empty($sorts)) {
       $sort_field = array_key_first($sorts);
       $sort_direction = $sorts[$sort_field];
-      usort($transformed, function ($a, $b) use ($sort_field, $sort_direction) {
+      // Use uasort to preserve keys (case_number)
+      uasort($result, function ($a, $b) use ($sort_field, $sort_direction) {
         $cmp = ($a[$sort_field] ?? '') <=> ($b[$sort_field] ?? '');
         return $sort_direction === 'DESC' ? -$cmp : $cmp;
       });
@@ -406,11 +402,11 @@ class SuiteCrmStorageClient extends StorageClientBase {
     // Apply pagination in PHP.
     if ($start !== NULL || $length !== NULL) {
       $start = $start ?? 0;
-      $length = $length ?? count($transformed);
-      $transformed = array_slice($transformed, $start, $length, TRUE);
+      $length = $length ?? count($result);
+      $result = array_slice($result, $start, $length, TRUE);
     }
 
-    return $transformed;
+    return $result;
   }
 
   /**
@@ -418,6 +414,22 @@ class SuiteCrmStorageClient extends StorageClientBase {
    */
   public function querySource(array $parameters = [], array $sorts = [], ?int $start = NULL, ?int $length = NULL): array {
     return $this->query($parameters, $sorts, $start, $length);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function countQuery(array $parameters = []): int {
+    // Get all entities without pagination to count them
+    $all_entities = $this->query($parameters);
+    return count($all_entities);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function countQuerySource(array $parameters = []): int {
+    return $this->countQuery($parameters);
   }
 
   /**
@@ -446,19 +458,11 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function load(string|int $id): ?array {
-    // Use cached data from loadMultiple to avoid rate limiting.
-    if ($this->casesCache === NULL) {
-      $this->casesCache = $this->query();
-    }
+    // Load from full dataset (without pagination)
+    $all_cases = $this->query();
 
-    // Look for the case by ID in the cache.
-    foreach ($this->casesCache as $case) {
-      if (isset($case['id']) && $case['id'] == $id) {
-        return $case;
-      }
-    }
-
-    return NULL;
+    // Return the case by its ID (case_number key)
+    return $all_cases[$id] ?? NULL;
   }
 
   /**
@@ -480,6 +484,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
         $filtered[$id] = $all_cases[$id];
       }
     }
+
     return $filtered;
   }
 
@@ -655,7 +660,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
   public function clearCache() {
     $cache_key = 'suitecrm_cases_all';
     $this->cacheBackend->delete($cache_key);
-    $this->casesCache = NULL;
   }
 
   /**

@@ -286,7 +286,7 @@ display:
           separator: ', '
           field_api_classes: 0
       pager:
-        type: mini
+        type: full
         options:
           offset: 0
           pagination_heading_level: h4
@@ -318,7 +318,7 @@ display:
         type: none
         options: {  }
       cache:
-        type: tag
+        type: none
         options: {  }
       empty: {  }
       sorts: {  }
@@ -340,8 +340,10 @@ display:
         type: views_query
         options: {  }
       relationships: {  }
+      use_ajax: true
       header: {  }
       footer: {  }
+      rendering_language: '***LANGUAGE_entity_translation***'
       display_extenders: {  }
     cache_metadata:
       max-age: -1
@@ -351,6 +353,9 @@ display:
       tags:
         - 'config:field.storage.suitecrm_case.field_name'
         - 'config:field.storage.suitecrm_case.field_priority'
+    cache:
+      type: none
+      options: '{}'
   page_1:
     id: page_1
     display_title: Page
