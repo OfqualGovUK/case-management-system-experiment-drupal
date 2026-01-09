@@ -238,15 +238,9 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // The parent class likely handles this, but let's try both approaches
-    // First, try to get values at root level (in case parent flattens them)
-    $list_endpoint = $form_state->getValue('list_endpoint');
-
-    if (empty($list_endpoint)) {
-      // Values might be nested - try to get the complete form state
-      $all_values = $form_state->getValues();
-    }
-
+    // Call parent first
+    parent::submitConfigurationForm($form, $form_state);
+    
     // Save configuration from form values
     $this->configuration['list_endpoint'] = $form_state->getValue('list_endpoint') ?: '';
     $this->configuration['push_endpoint'] = $form_state->getValue('push_endpoint') ?: '';
@@ -472,7 +466,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
   public function load(string|int $id): ?array {
     // Load from full dataset (without pagination)
     $all_cases = $this->query();
-
+    
     // Return the case by its ID (case_number key)
     return $all_cases[$id] ?? NULL;
   }
@@ -496,7 +490,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
         $filtered[$id] = $all_cases[$id];
       }
     }
-
+    
     return $filtered;
   }
 
@@ -604,13 +598,13 @@ class SuiteCrmStorageClient extends StorageClientBase {
       'created',
       'changed',
     ];
-
+    
     // Add configured read-only fields
     $read_only_fields = $this->configuration['read_only_fields'] ?? [];
     if (!is_array($read_only_fields)) {
       $read_only_fields = [];
     }
-
+    
     $skip_fields = array_merge($system_fields, $read_only_fields);
 
     foreach ($field_definitions as $field_name => $field_definition) {
@@ -659,11 +653,11 @@ class SuiteCrmStorageClient extends StorageClientBase {
     // Get field mappers from the external entity type configuration
     if ($this->externalEntityType) {
       $field_mappers = $this->externalEntityType->get('field_mappers');
-
+      
       // Look for this field in the field mappers
       if (isset($field_mappers[$drupal_field_name])) {
         $field_mapper = $field_mappers[$drupal_field_name];
-
+        
         // Check if there's a mapping configured
         if (isset($field_mapper['config']['property_mappings']['value']['config']['mapping'])) {
           $api_field_name = $field_mapper['config']['property_mappings']['value']['config']['mapping'];
@@ -673,18 +667,18 @@ class SuiteCrmStorageClient extends StorageClientBase {
         }
       }
     }
-
+    
     // Fallback: strip 'field_' prefix if present
     if (strpos($drupal_field_name, 'field_') === 0) {
       return substr($drupal_field_name, 6);
     }
-
+    
     // Special cases for common Drupal fields
     $static_mapping = [
       'title' => 'name',
       'default_langcode' => 'langcode',
     ];
-
+    
     return $static_mapping[$drupal_field_name] ?? $drupal_field_name;
   }
 

@@ -162,8 +162,9 @@ data_aggregator:
           single_endpoint: '/Cases?filter[case_number][eq]={id}'
           api_type: Cases
           format: json
+          parameters: ''
           response_data_path: data
-          parameters: {  }
+          read_only_fields: "field_date\r\nfield_last_modified"
 data_aggregator_notes: ''
 language_settings: null
 persistent_cache_max_age: 300
@@ -172,3 +173,4 @@ annotation_bundle_id: null
 annotation_field_name: null
 annotation_inherited_fields: {  }
 locks: {  }
+persistent: true
