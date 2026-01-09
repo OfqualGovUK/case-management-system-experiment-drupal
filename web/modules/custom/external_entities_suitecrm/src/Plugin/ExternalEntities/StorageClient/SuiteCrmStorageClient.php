@@ -141,6 +141,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
       'parameters' => [],
       'response_data_path' => 'data',
       'api_type' => 'Cases',
+      'read_only_fields' => [],
     ];
   }
 
@@ -198,6 +199,15 @@ class SuiteCrmStorageClient extends StorageClientBase {
       '#default_value' => $this->configuration['response_data_path'] ?? 'data',
     ];
 
+    $form['read_only_fields'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Read-Only Fields'),
+      '#description' => $this->t('Field names that should never be sent in PATCH/POST requests (one per line). System fields like id, uuid, type are always excluded. Example: field_date, field_last_modified'),
+      '#default_value' => $this->formatReadOnlyFields($this->configuration['read_only_fields'] ?? []),
+      '#rows' => 5,
+      '#placeholder' => "field_date\nfield_last_modified",
+    ];
+
     $form['apim_key_info'] = [
       '#type' => 'item',
       '#title' => $this->t('APIM Subscription Key'),
@@ -245,6 +255,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
     $this->configuration['format'] = $form_state->getValue('format') ?: 'json';
     $this->configuration['parameters'] = $this->parseParameters($form_state->getValue('parameters') ?: '');
     $this->configuration['response_data_path'] = $form_state->getValue('response_data_path') ?: 'data';
+    $this->configuration['read_only_fields'] = $this->parseReadOnlyFields($form_state->getValue('read_only_fields') ?: '');
   }
 
   /**
@@ -386,6 +397,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
       }
     }
 
+    // IMPORTANT: Work on a copy for sorting/pagination to preserve cached data
     $result = $transformed;
 
     // Apply sorting in PHP since API doesn't support it.
@@ -582,8 +594,8 @@ class SuiteCrmStorageClient extends StorageClientBase {
     // Get field definitions.
     $field_definitions = $entity->getFieldDefinitions();
 
-    // Fields to always skip (system fields + fields that shouldn't be updated)
-    $skip_fields = [
+    // Always skip these system fields
+    $system_fields = [
       'id',
       'uuid',
       'type',
@@ -591,9 +603,15 @@ class SuiteCrmStorageClient extends StorageClientBase {
       'default_langcode',
       'created',
       'changed',
-      'field_date',           // date_entered - shouldn't update creation date
-      'field_last_modified',  // date_modified - API should set this
     ];
+
+    // Add configured read-only fields
+    $read_only_fields = $this->configuration['read_only_fields'] ?? [];
+    if (!is_array($read_only_fields)) {
+      $read_only_fields = [];
+    }
+
+    $skip_fields = array_merge($system_fields, $read_only_fields);
 
     foreach ($field_definitions as $field_name => $field_definition) {
       // Skip computed, read-only, and excluded fields
@@ -638,20 +656,36 @@ class SuiteCrmStorageClient extends StorageClientBase {
    *   The API field name.
    */
   protected function mapFieldName($drupal_field_name) {
-    // Map Drupal field names to SuiteCRM API field names
-    $mapping = [
+    // Get field mappers from the external entity type configuration
+    if ($this->externalEntityType) {
+      $field_mappers = $this->externalEntityType->get('field_mappers');
+
+      // Look for this field in the field mappers
+      if (isset($field_mappers[$drupal_field_name])) {
+        $field_mapper = $field_mappers[$drupal_field_name];
+
+        // Check if there's a mapping configured
+        if (isset($field_mapper['config']['property_mappings']['value']['config']['mapping'])) {
+          $api_field_name = $field_mapper['config']['property_mappings']['value']['config']['mapping'];
+          if (!empty($api_field_name)) {
+            return $api_field_name;
+          }
+        }
+      }
+    }
+
+    // Fallback: strip 'field_' prefix if present
+    if (strpos($drupal_field_name, 'field_') === 0) {
+      return substr($drupal_field_name, 6);
+    }
+
+    // Special cases for common Drupal fields
+    $static_mapping = [
       'title' => 'name',
-      'field_name' => 'name',
-      'field_case_number' => 'case_number',
-      'field_date' => 'date_entered',
-      'field_last_modified' => 'date_modified',
-      'field_description' => 'description',
-      'field_priority' => 'priority',
-      'field_status' => 'status',
-      'default_langcode' => 'langcode', // Keep but probably won't be used by SuiteCRM
+      'default_langcode' => 'langcode',
     ];
 
-    return $mapping[$drupal_field_name] ?? $drupal_field_name;
+    return $static_mapping[$drupal_field_name] ?? $drupal_field_name;
   }
 
   /**
@@ -719,6 +753,54 @@ class SuiteCrmStorageClient extends StorageClientBase {
     }
 
     return implode("\n", $lines);
+  }
+
+  /**
+   * Parses read-only fields from text format.
+   *
+   * @param string $text
+   *   Text with field names, one per line.
+   *
+   * @return array
+   *   Array of field names.
+   */
+  protected function parseReadOnlyFields($text) {
+    if (empty($text)) {
+      return [];
+    }
+
+    $fields = [];
+    $lines = explode("\n", $text);
+
+    foreach ($lines as $line) {
+      $line = trim($line);
+      if (!empty($line) && strpos($line, '#') !== 0) {
+        $fields[] = $line;
+      }
+    }
+
+    return $fields;
+  }
+
+  /**
+   * Formats read-only fields array to text format.
+   *
+   * @param mixed $fields
+   *   Fields array or string.
+   *
+   * @return string
+   *   Formatted fields string.
+   */
+  protected function formatReadOnlyFields($fields) {
+    if (is_string($fields)) {
+      return $fields;
+    }
+
+    if (empty($fields) || !is_array($fields)) {
+      return '';
+    }
+
+    return implode("\n", $fields);
   }
 
 }
