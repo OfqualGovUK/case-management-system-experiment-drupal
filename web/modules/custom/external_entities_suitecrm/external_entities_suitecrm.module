@@ -90,10 +90,34 @@ function external_entities_suitecrm_entity_update(EntityInterface $entity) {
     }
   }
 
-  // Set persistent=TRUE and export config
+  // Get links configuration from POST data
   $config = \Drupal::configFactory()->getEditable('external_entities.external_entity_type.' . $entity_id);
+
+  if (isset($post_data['links'])) {
+    $links = $post_data['links'];
+
+    // Remove the help item (it's not a link)
+    unset($links['help']);
+
+    // Filter out empty values
+    $links = array_filter($links, function($value) {
+      return !empty($value);
+    });
+
+    if (!empty($links)) {
+      $config->set('links', $links);
+    }
+  }
+
+  // Set persistent=TRUE
   $config->set('persistent', TRUE);
   $config->save();
+
+  // Clear router cache to rebuild routes with new link patterns
+  \Drupal::service('router.builder')->rebuild();
+
+  // Clear entity type cache
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
 
   external_entities_suitecrm_export_config($entity_id);
 }

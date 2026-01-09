@@ -11,7 +11,7 @@ third_party_settings:
 id: suitecrm_case
 label: 'SuiteCRM Case'
 label_plural: 'SuiteCRM Cases'
-base_path: suitecrm-case
+base_path: case
 description: ''
 content_class: Drupal\external_entities\Entity\ExternalEntity
 read_only: false
@@ -173,4 +173,10 @@ annotation_bundle_id: null
 annotation_field_name: null
 annotation_inherited_fields: {  }
 locks: {  }
+links:
+  canonical: '/case/{suitecrm_case}'
+  edit-form: '/case/{suitecrm_case}/edit'
+  add-form: /case/add
+  delete-form: '/case/{suitecrm_case}/delete'
+  collection: /admin/content/suitecrm_cases
 persistent: true

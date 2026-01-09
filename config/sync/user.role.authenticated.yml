@@ -20,8 +20,10 @@ is_admin: false
 permissions:
   - 'access content'
   - 'access shortcuts'
+  - 'create suitecrm_case external entity'
   - 'delete own files'
   - 'search content'
+  - 'update suitecrm_case external entity'
   - 'use text format basic_html'
   - 'view suitecrm_case external entity'
   - 'view suitecrm_case external entity collection'
