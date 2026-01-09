@@ -14,7 +14,6 @@ dependencies:
     - datetime
     - external_entities
     - field_layout
-    - heading
     - layout_discovery
     - text
 third_party_settings:
@@ -29,27 +28,27 @@ mode: default
 content:
   field_case_number:
     type: number_integer
-    label: hidden
+    label: inline
     settings:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 2
+    weight: 1
     region: content
   field_date:
     type: string
-    label: hidden
+    label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 4
+    weight: 3
     region: content
   field_description:
     type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 5
+    weight: 4
     region: content
   field_last_modified:
     type: datetime_default
@@ -58,15 +57,15 @@ content:
       timezone_override: ''
       format_type: medium
     third_party_settings: {  }
-    weight: 8
+    weight: 7
     region: content
   field_name:
     type: string
-    label: hidden
+    label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 3
+    weight: 2
     region: content
   field_priority:
     type: string
@@ -74,7 +73,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 6
+    weight: 5
     region: content
   field_status:
     type: string
@@ -82,7 +81,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 7
+    weight: 6
     region: content
   status:
     type: boolean
@@ -92,15 +91,8 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 1
-    region: content
-  title:
-    type: heading_text
-    label: hidden
-    settings:
-      size: h2
-    third_party_settings: {  }
     weight: 0
     region: content
 hidden:
   langcode: true
+  title: true

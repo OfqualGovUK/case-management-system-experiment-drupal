@@ -1,0 +1,37 @@
+{#
+/**
+ * @file
+ * Theme override for a breadcrumb trail using Carbon Design System.
+ *
+ * This template overrides the core system breadcrumb template to use
+ * Carbon Design System's web components instead of native HTML.
+ *
+ * Available variables:
+ * - breadcrumb: Breadcrumb trail items.
+ *
+ * @ingroup themeable
+ */
+#}
+
+{% if breadcrumb %}
+  {# Convert Drupal breadcrumb format to Carbon component format #}
+  {% set carbon_items = [] %}
+  {% for item in breadcrumb %}
+    {% set carbon_items = carbon_items|merge([{
+      label: item.text,
+      href: item.url|default(null)
+    }]) %}
+  {% endfor %}
+
+  {# Render using Carbon breadcrumb component #}
+  {{ include('carbon_design_system:breadcrumb', {
+    items: carbon_items,
+    noTrailingSlash: true,
+    attributes: create_attribute()
+      .setAttribute('role', 'navigation')
+      .setAttribute('aria-labelledby', 'system-breadcrumb')
+  }) }}
+
+  {# Hidden heading for accessibility #}
+  <h2 id="system-breadcrumb" class="visually-hidden">{{ 'Breadcrumb'|t }}</h2>
+{% endif %}
