@@ -6,8 +6,10 @@ dependencies:
     - field.storage.suitecrm_case.field_name
     - field.storage.suitecrm_case.field_priority
     - system.menu.main
+    - user.role.authenticated
   module:
     - carbon_design_system_views
+    - user
     - xntt_views
 id: suitecrm_cases
 label: 'SuiteCRM Cases'
@@ -315,8 +317,10 @@ display:
           sort_asc_label: Asc
           sort_desc_label: Desc
       access:
-        type: none
-        options: {  }
+        type: role
+        options:
+          role:
+            authenticated: authenticated
       cache:
         type: none
         options: {  }
@@ -350,6 +354,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - user.roles
       tags:
         - 'config:field.storage.suitecrm_case.field_name'
         - 'config:field.storage.suitecrm_case.field_priority'
@@ -378,6 +383,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - user.roles
       tags:
         - 'config:field.storage.suitecrm_case.field_name'
         - 'config:field.storage.suitecrm_case.field_priority'

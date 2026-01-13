@@ -58,6 +58,7 @@ module:
   seckit: 0
   security_review: 0
   serialization: 0
+  shield: 0
   shortcut: 0
   system: 0
   taxonomy: 0
