@@ -881,6 +881,13 @@ $config['openid_connect.client.entraid']['settings']['scopes'] = [
   'api://' . $clientId . '/access_as_user'
 ];
 
+/* Shield settings */
+$shield_user = getenv('SHIELD_USER');
+$shield_pass = getenv('SHIELD_PASS');
+$config['shield.settings']['shield_enable'] = TRUE;
+$config['shield.settings']['credentials']['shield']['user'] = $shield_user;
+$config['shield.settings']['credentials']['shield']['pass'] = $shield_pass;
+
 /**
  * Environment settings override.
  *
@@ -902,6 +909,7 @@ if (!empty($app_env)) {
 // Automatically generated include for settings managed by ddev.
 $ddev_settings = __DIR__ . '/settings.ddev.php';
 if (getenv('IS_DDEV_PROJECT') == 'true' && is_readable($ddev_settings)) {
+  $config['shield.settings']['shield_enable'] = FALSE;
   require $ddev_settings;
 }
 
