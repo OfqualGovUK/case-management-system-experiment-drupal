@@ -1,4 +1,10 @@
 global:
   css:
     theme:
-      assets/style.css: {}
+      assets/css/style.css: {}
+
+pagination:
+  js:
+    assets/js/pagination-handler.js: {}
+  dependencies:
+    - core/drupal

@@ -1,0 +1,24 @@
+name: Pagination
+status: stable
+description: Implements the Carbon Design System Pagination using Web Components. Pagination divides content into separate pages with controls for navigation.
+props:
+  attributes:
+    type: Drupal\Core\Template\Attribute
+    description: HTML attributes for the <cds-pagination> element.
+    required: false
+  page:
+    type: integer
+    description: Current page number (0-indexed in Drupal, 1-indexed in display).
+    required: true
+  total_items:
+    type: integer
+    description: Total number of items across all pages.
+    required: true
+  items_per_page:
+    type: integer
+    description: Number of items displayed per page.
+    required: true
+  page_sizes:
+    type: array
+    description: Array of available page size options (e.g., [10, 20, 50]). Optional.
+    required: false
