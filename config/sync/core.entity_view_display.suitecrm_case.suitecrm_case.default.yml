@@ -4,15 +4,17 @@ status: true
 dependencies:
   config:
     - field.field.suitecrm_case.suitecrm_case.field_case_number
-    - field.field.suitecrm_case.suitecrm_case.field_date
+    - field.field.suitecrm_case.suitecrm_case.field_date_modified
     - field.field.suitecrm_case.suitecrm_case.field_description
-    - field.field.suitecrm_case.suitecrm_case.field_last_modified
+    - field.field.suitecrm_case.suitecrm_case.field_edit_description
+    - field.field.suitecrm_case.suitecrm_case.field_edit_priority_and_status
     - field.field.suitecrm_case.suitecrm_case.field_name
     - field.field.suitecrm_case.suitecrm_case.field_priority
     - field.field.suitecrm_case.suitecrm_case.field_status
   module:
     - datetime
     - external_entities
+    - external_entities_suitecrm
     - field_layout
     - layout_discovery
     - text
@@ -26,6 +28,16 @@ targetEntityType: suitecrm_case
 bundle: suitecrm_case
 mode: default
 content:
+  edit_link_case_description:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  edit_link_case_status_and_priority:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 8
+    region: content
   field_case_number:
     type: number_integer
     label: inline
@@ -35,13 +47,14 @@ content:
     third_party_settings: {  }
     weight: 1
     region: content
-  field_date:
-    type: string
-    label: inline
+  field_date_modified:
+    type: datetime_default
+    label: above
     settings:
-      link_to_entity: false
+      timezone_override: ''
+      format_type: medium
     third_party_settings: {  }
-    weight: 3
+    weight: 2
     region: content
   field_description:
     type: text_default
@@ -50,14 +63,29 @@ content:
     third_party_settings: {  }
     weight: 4
     region: content
-  field_last_modified:
-    type: datetime_default
+  field_edit_description:
+    type: form_mode_links_formatter
+    label: hidden
+    settings:
+      link_class: button
+      form_modes:
+        case_description: case_description
+        case_status_and_priority: 0
+      show_default: 0
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_edit_priority_and_status:
+    type: form_mode_links_formatter
     label: above
     settings:
-      timezone_override: ''
-      format_type: medium
+      link_class: button
+      form_modes:
+        case_status_and_priority: case_status_and_priority
+        case_description: 0
+      show_default: 0
     third_party_settings: {  }
-    weight: 7
+    weight: 9
     region: content
   field_name:
     type: string
@@ -65,7 +93,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 2
+    weight: 3
     region: content
   field_priority:
     type: string
@@ -73,7 +101,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 5
+    weight: 6
     region: content
   field_status:
     type: string
@@ -81,7 +109,12 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 6
+    weight: 7
+    region: content
+  form_mode_links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 8
     region: content
   status:
     type: boolean
@@ -94,5 +127,6 @@ content:
     weight: 0
     region: content
 hidden:
+  edit_link: true
   langcode: true
   title: true

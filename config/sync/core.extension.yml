@@ -28,6 +28,8 @@ module:
   external_entities_pathauto: 0
   external_entities_suitecrm: 0
   field: 0
+  field_group: 0
+  field_group_markup: 0
   field_layout: 0
   field_ui: 0
   file: 0
@@ -73,6 +75,7 @@ module:
   pathauto: 1
   externalauth: 10
   views: 10
+  form_mode_manager: 11
 theme:
   olivero: 0
   claro: 0

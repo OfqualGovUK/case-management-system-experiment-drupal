@@ -30,7 +30,7 @@ field_mappers:
             data_processors: {  }
             description: ''
       debug_level: 2
-  field_date:
+  field_date_modified:
     id: generic
     config:
       property_mappings:
@@ -40,7 +40,13 @@ field_mappers:
             mapping: date_modified
             required_field: false
             main_property: true
-            data_processors: {  }
+            data_processors:
+              -
+                id: datetime
+                config:
+                  source_format: iso8601
+                  save_format: ''
+                  drupal_format: auto
             description: ''
       debug_level: 2
   field_description:
@@ -57,19 +63,6 @@ field_mappers:
             description: ''
         format:
           id: ''
-      debug_level: 2
-  field_last_modified:
-    id: generic
-    config:
-      property_mappings:
-        value:
-          id: simple
-          config:
-            mapping: date_modified
-            required_field: false
-            main_property: true
-            data_processors: {  }
-            description: ''
       debug_level: 2
   field_name:
     id: generic
@@ -159,7 +152,7 @@ data_aggregator:
         config:
           list_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases'
           push_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule'
-          single_endpoint: '/Cases?filter[case_number][eq]={id}'
+          single_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases?filter[case_number][eq]={id}'
           api_type: Cases
           format: json
           parameters: ''

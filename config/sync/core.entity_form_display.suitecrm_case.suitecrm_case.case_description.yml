@@ -1,8 +1,9 @@
-uuid: d5717e1f-8280-4269-a98f-e5ec0b4a5ac0
+uuid: ba24a6ec-63b1-42f2-83e0-0ad55b422d7e
 langcode: en-gb
 status: true
 dependencies:
   config:
+    - core.entity_form_mode.suitecrm_case.case_description
     - field.field.suitecrm_case.suitecrm_case.field_case_number
     - field.field.suitecrm_case.suitecrm_case.field_date_modified
     - field.field.suitecrm_case.suitecrm_case.field_description
@@ -12,9 +13,7 @@ dependencies:
     - field.field.suitecrm_case.suitecrm_case.field_priority
     - field.field.suitecrm_case.suitecrm_case.field_status
   module:
-    - datetime
     - external_entities
-    - external_entities_suitecrm
     - field_group
     - field_layout
     - layout_discovery
@@ -30,7 +29,7 @@ third_party_settings:
       label: Instruction
       region: content
       parent_name: ''
-      weight: 3
+      weight: 1
       format_type: markup
       format_settings:
         classes: form-wrapper
@@ -40,63 +39,27 @@ third_party_settings:
         markup:
           value: '<p>This is some simple instruction to be placed inside the form</p>'
           format: basic_html
-id: suitecrm_case.suitecrm_case.default
+id: suitecrm_case.suitecrm_case.case_description
 targetEntityType: suitecrm_case
 bundle: suitecrm_case
-mode: default
+mode: case_description
 content:
-  field_date_modified:
-    type: datetime_default
-    weight: 12
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   field_description:
     type: text_textarea
-    weight: 2
+    weight: 0
     region: content
     settings:
       rows: 5
       placeholder: ''
     third_party_settings: {  }
-  field_edit_description:
-    type: form_mode_links_widget
-    weight: 11
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_edit_priority_and_status:
-    type: form_mode_links_widget
-    weight: 13
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_name:
-    type: string_textfield
-    weight: 0
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_priority:
-    type: string_textfield
-    weight: 9
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_status:
-    type: string_textfield
-    weight: 10
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
 hidden:
   field_case_number: true
+  field_date_modified: true
+  field_edit_description: true
+  field_edit_priority_and_status: true
+  field_name: true
+  field_priority: true
+  field_status: true
   langcode: true
   status: true
   title: true

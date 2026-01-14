@@ -1,18 +1,17 @@
-uuid: ac0b591c-feff-48fb-86b8-5f7d0442c6fa
+uuid: 62553d52-22d1-4730-8f89-ca606ef49b4e
 langcode: en-gb
 status: true
 dependencies:
   module:
+    - datetime
     - external_entities
-id: suitecrm_case.field_date
-field_name: field_date
+id: suitecrm_case.field_date_modified
+field_name: field_date_modified
 entity_type: suitecrm_case
-type: string
+type: datetime
 settings:
-  max_length: 255
-  case_sensitive: false
-  is_ascii: false
-module: core
+  datetime_type: datetime
+module: datetime
 locked: false
 cardinality: 1
 translatable: true

@@ -19,11 +19,10 @@ function external_entities_suitecrm_entity_view_alter(array &$build, EntityInter
     return;
   }
 
-  // Get field definitions to check for text fields
+  // Handle HTML rendering in text fields
   $field_definitions = $entity->getFieldDefinitions();
 
   foreach (Element::children($build) as $field_name) {
-    // Skip if not a field or field doesn't exist
     if (!isset($field_definitions[$field_name]) || !isset($build[$field_name])) {
       continue;
     }
@@ -32,15 +31,11 @@ function external_entities_suitecrm_entity_view_alter(array &$build, EntityInter
     $field_type = $field_definition->getType();
 
     if (in_array($field_type, ['string', 'string_long', 'text', 'text_long'])) {
-      // Iterate through field items
       foreach (Element::children($build[$field_name]) as $delta) {
-        // Try to get the value directly from the entity
         if ($entity->hasField($field_name)) {
           $field_item = $entity->get($field_name)->get($delta);
           if ($field_item) {
             $value = $field_item->value;
-
-            // If value contains HTML tags, render as markup
             if ($value && is_string($value) && strip_tags($value) !== $value) {
               $build[$field_name][$delta] = [
                 '#markup' => $value,
@@ -58,7 +53,6 @@ function external_entities_suitecrm_entity_view_alter(array &$build, EntityInter
  * Implements hook_entity_update().
  */
 function external_entities_suitecrm_entity_update(EntityInterface $entity) {
-  // Only act on external_entity_type entities
   if ($entity->getEntityTypeId() !== 'external_entity_type') {
     return;
   }
@@ -68,21 +62,18 @@ function external_entities_suitecrm_entity_update(EntityInterface $entity) {
     return;
   }
 
-  // Try to get storage config from POST data (since form submit handlers don't execute)
+  // Get storage config from POST data
   $request = \Drupal::request();
   $post_data = $request->request->all();
 
-  // Look for storage config in POST data
   if (isset($post_data['storages_tab']['config']['storage_clients'][0]['config'])) {
     $storage_config = $post_data['storages_tab']['config']['storage_clients'][0]['config'];
 
-    // Update the entity's data_aggregator config
     $data_aggregator = $entity->get('data_aggregator');
     if (!empty($data_aggregator)) {
       $data_aggregator['config']['storage_clients'][0]['config'] = $storage_config;
       $entity->set('data_aggregator', $data_aggregator);
 
-      // Save without triggering infinite loop
       if (!isset($entity->isUpdatingFromHook)) {
         $entity->isUpdatingFromHook = TRUE;
         $entity->save();
@@ -90,16 +81,12 @@ function external_entities_suitecrm_entity_update(EntityInterface $entity) {
     }
   }
 
-  // Get links configuration from POST data
+  // Get links from POST
   $config = \Drupal::configFactory()->getEditable('external_entities.external_entity_type.' . $entity_id);
 
   if (isset($post_data['links'])) {
     $links = $post_data['links'];
-
-    // Remove the help item (it's not a link)
     unset($links['help']);
-
-    // Filter out empty values
     $links = array_filter($links, function($value) {
       return !empty($value);
     });
@@ -109,50 +96,42 @@ function external_entities_suitecrm_entity_update(EntityInterface $entity) {
     }
   }
 
-  // Set persistent=TRUE
+  // Set persistent
   $config->set('persistent', TRUE);
   $config->save();
 
-  // Clear router cache to rebuild routes with new link patterns
   \Drupal::service('router.builder')->rebuild();
-
-  // Clear entity type cache
   \Drupal::entityTypeManager()->clearCachedDefinitions();
-
-  external_entities_suitecrm_export_config($entity_id);
 }
 
 /**
  * Implements hook_entity_presave().
  */
-function external_entities_suitecrm_entity_presave(Drupal\Core\Entity\EntityInterface $entity) {
-  // Only act on external_entity_type entities
+function external_entities_suitecrm_entity_presave(EntityInterface $entity) {
   if ($entity->getEntityTypeId() !== 'external_entity_type') {
     return;
   }
 
-  // Only act on our entity
   if ($entity->id() !== 'suitecrm_case') {
     return;
   }
 
-  // Get current data_aggregator
   $data_aggregator = $entity->get('data_aggregator');
 
-  // Check if storage client config is empty
   if (isset($data_aggregator['config']['storage_clients'][0]['config']) &&
     empty($data_aggregator['config']['storage_clients'][0]['config'])) {
 
-    // Load the CURRENT saved config from database
     $current_entity = \Drupal::entityTypeManager()
       ->getStorage('external_entity_type')
       ->loadUnchanged('suitecrm_case');
 
     if ($current_entity) {
-      $current_aggregator = $current_entity->get('data_aggregator');
-      if (!empty($current_aggregator['config']['storage_clients'][0]['config'])) {
-        // Restore the config
-        $data_aggregator['config']['storage_clients'][0]['config'] = $current_aggregator['config']['storage_clients'][0]['config'];
+      $current_data_aggregator = $current_entity->get('data_aggregator');
+
+      if (!empty($current_data_aggregator['config']['storage_clients'][0]['config'])) {
+        $data_aggregator['config']['storage_clients'][0]['config'] =
+          $current_data_aggregator['config']['storage_clients'][0]['config'];
+
         $entity->set('data_aggregator', $data_aggregator);
       }
     }
@@ -163,335 +142,45 @@ function external_entities_suitecrm_entity_presave(Drupal\Core\Entity\EntityInte
  * Implements hook_form_FORM_ID_alter() for external_entity_type_edit_form.
  */
 function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  // Add handler to manually save storage config (though it won't execute due to External Entities form handling)
-  $form['actions']['submit']['#submit'][] = 'external_entities_suitecrm_save_storage_config_manual';
-
-  // Add our submit handler to ensure persistent is always set
-  array_unshift($form['actions']['submit']['#submit'], 'external_entities_suitecrm_ensure_persistent_submit');
-
-  // Add links configuration UI
   $entity = $form_state->getFormObject()->getEntity();
-  $base_path = $entity->get('base_path') ?: $entity->id();
-  $entity_id = $entity->id();
 
-  // Get current links from config (not from entity)
-  $config = \Drupal::config('external_entities.external_entity_type.' . $entity_id);
+  // Only add links UI for suitecrm entities
+  if (strpos($entity->id(), 'suitecrm_') !== 0) {
+    return;
+  }
+
+  // Get current links
+  $config = \Drupal::config('external_entities.external_entity_type.' . $entity->id());
   $current_links = $config->get('links') ?: [];
 
-  // Smart defaults based on base_path
-  $defaults = [
-    'canonical' => "/{$base_path}/{{$entity_id}}",
-    'edit-form' => "/{$base_path}/{{$entity_id}}/edit",
-    'add-form' => "/{$base_path}/add",
-    'delete-form' => "/{$base_path}/{{$entity_id}}/delete",
-    'collection' => "/admin/content/{$entity_id}s",
-  ];
-
+  // Add links configuration section
   $form['links'] = [
     '#type' => 'details',
-    '#title' => t('Entity Links Configuration'),
-    '#description' => t('Configure the URL patterns for this entity type. Links will be automatically generated based on your base path (<strong>@base_path</strong>) and entity ID (<strong>@entity_id</strong>).', [
-      '@base_path' => $base_path,
-      '@entity_id' => $entity_id,
-    ]),
-    '#open' => TRUE,
+    '#title' => t('Entity Links'),
+    '#description' => t('Configure URL paths for entity operations. Use {' . $entity->id() . '} as a placeholder for the entity ID.'),
+    '#open' => FALSE,
     '#tree' => TRUE,
-    '#weight' => 5,
-    '#states' => [
-      'visible' => [
-        ':input[name="label"]' => ['filled' => TRUE],
-      ],
-    ],
-  ];
-
-  $form['links']['canonical'] = [
-    '#type' => 'textfield',
-    '#title' => t('Canonical (View) URL Pattern'),
-    '#default_value' => $current_links['canonical'] ?? $defaults['canonical'],
-    '#required' => TRUE,
-    '#size' => 60,
-    '#maxlength' => 255,
-    '#placeholder' => $defaults['canonical'],
-    '#description' => t('URL pattern for viewing a single entity.'),
-  ];
-
-  $form['links']['edit-form'] = [
-    '#type' => 'textfield',
-    '#title' => t('Edit Form URL Pattern'),
-    '#default_value' => $current_links['edit-form'] ?? $defaults['edit-form'],
-    '#required' => TRUE,
-    '#size' => 60,
-    '#maxlength' => 255,
-    '#placeholder' => $defaults['edit-form'],
-    '#description' => t('URL pattern for editing an entity.'),
-    '#states' => [
-      'visible' => [
-        ':input[name="read_only"]' => ['checked' => FALSE],
-      ],
-      'required' => [
-        ':input[name="read_only"]' => ['checked' => FALSE],
-      ],
-    ],
-  ];
-
-  $form['links']['add-form'] = [
-    '#type' => 'textfield',
-    '#title' => t('Add Form URL Pattern'),
-    '#default_value' => $current_links['add-form'] ?? $defaults['add-form'],
-    '#size' => 60,
-    '#maxlength' => 255,
-    '#placeholder' => $defaults['add-form'],
-    '#description' => t('URL pattern for creating a new entity.'),
-    '#states' => [
-      'visible' => [
-        ':input[name="read_only"]' => ['checked' => FALSE],
-      ],
-    ],
-  ];
-
-  $form['links']['delete-form'] = [
-    '#type' => 'textfield',
-    '#title' => t('Delete Form URL Pattern'),
-    '#default_value' => $current_links['delete-form'] ?? $defaults['delete-form'],
-    '#size' => 60,
-    '#maxlength' => 255,
-    '#placeholder' => $defaults['delete-form'],
-    '#description' => t('URL pattern for deleting an entity.'),
-    '#states' => [
-      'visible' => [
-        ':input[name="read_only"]' => ['checked' => FALSE],
-      ],
-    ],
-  ];
-
-  $form['links']['collection'] = [
-    '#type' => 'textfield',
-    '#title' => t('Collection (List) URL Pattern'),
-    '#default_value' => $current_links['collection'] ?? $defaults['collection'],
-    '#size' => 60,
-    '#maxlength' => 255,
-    '#placeholder' => $defaults['collection'],
-    '#description' => t('URL pattern for the entity listing page.'),
+    '#weight' => 10,
   ];
 
   $form['links']['help'] = [
-    '#type' => 'item',
-    '#markup' => '<div class="messages messages--info"><strong>' . t('URL Pattern Guidelines:') . '</strong><ul>' .
-      '<li>' . t('Use <code>{@placeholder}</code> as the placeholder for the entity ID', ['@placeholder' => $entity_id]) . '</li>' .
-      '<li>' . t('Paths should match your base path: <code>/@base_path</code>', ['@base_path' => $base_path]) . '</li>' .
-      '<li>' . t('These patterns are used by Drupal to generate routes automatically') . '</li>' .
-      '<li>' . t('Example: <code>/@base_path/{@placeholder}</code> becomes <code>/@base_path/CASE001</code>', [
-        '@base_path' => $base_path,
-        '@placeholder' => $entity_id,
-      ]) . '</li>' .
-      '</ul></div>',
+    '#markup' => '<p>' . t('Example: <code>/case/{suitecrm_case}</code> for viewing a case, <code>/case/add</code> for creating a new case.') . '</p>',
   ];
 
-  // Add custom submit handler for links (runs after entity save)
-  $form['actions']['submit']['#submit'][] = 'external_entities_suitecrm_links_form_submit';
-}
+  $link_types = [
+    'canonical' => t('View (canonical)'),
+    'edit-form' => t('Edit form'),
+    'add-form' => t('Add form'),
+    'delete-form' => t('Delete form'),
+    'collection' => t('Collection/List'),
+  ];
 
-/**
- * Custom submit handler to manually save storage configuration.
- *
- * External Entities doesn't properly call the storage client's submitConfigurationForm,
- * so we need to manually extract and save the config.
- */
-function external_entities_suitecrm_save_storage_config_manual($form, FormStateInterface $form_state) {
-  try {
-    $entity = $form_state->getFormObject()->getEntity();
-    $entity_id = $entity->id();
-
-    // Get ALL form values to find the storage config
-    $all_values = $form_state->getValues();
-
-    // Try different paths where the storage config might be
-    $storage_config = NULL;
-
-    // Path 1: storages_tab -> config -> storage_clients
-    if (isset($all_values['storages_tab']['config']['storage_clients'][0]['config'])) {
-      $storage_config = $all_values['storages_tab']['config']['storage_clients'][0]['config'];
-    }
-
-    // Path 2: data_aggregator -> config -> storage_clients
-    if (!$storage_config && isset($all_values['data_aggregator']['config']['storage_clients'][0]['config'])) {
-      $storage_config = $all_values['data_aggregator']['config']['storage_clients'][0]['config'];
-    }
-
-    if ($storage_config) {
-      // Reload entity and update its config
-      \Drupal::entityTypeManager()->getStorage('external_entity_type')->resetCache([$entity_id]);
-      $saved_entity = \Drupal::entityTypeManager()->getStorage('external_entity_type')->load($entity_id);
-
-      $data_aggregator = $saved_entity->get('data_aggregator');
-      if (!empty($data_aggregator)) {
-        $data_aggregator['config']['storage_clients'][0]['config'] = $storage_config;
-        $saved_entity->set('data_aggregator', $data_aggregator);
-        $saved_entity->save();
-      }
-    }
-
-  } catch (\Exception $e) {
-    \Drupal::logger('suitecrm_case')->error('Exception in save_storage_config_manual: @message', [
-      '@message' => $e->getMessage(),
-    ]);
+  foreach ($link_types as $key => $label) {
+    $form['links'][$key] = [
+      '#type' => 'textfield',
+      '#title' => $label,
+      '#default_value' => $current_links[$key] ?? '',
+      '#placeholder' => $key === 'add-form' ? '/case/add' : '/case/{suitecrm_case}',
+    ];
   }
 }
-
-/**
- * Custom submit handler to ensure persistent is always set to TRUE.
- *
- * This runs FIRST (prepended to submit handlers) to ensure persistent is set
- * before the entity type is saved.
- */
-function external_entities_suitecrm_ensure_persistent_submit($form, FormStateInterface $form_state) {
-  $entity = $form_state->getFormObject()->getEntity();
-
-  // Set persistent in the form state so it gets saved with the entity
-  // This doesn't work because the entity class filters it out, but we try anyway
-  $entity->set('persistent', TRUE);
-}
-
-/**
- * Custom submit handler to save storage client configuration.
- *
- * This runs AFTER ::save, so we need to reload and re-save the entity.
- */
-/**
- * Custom submit handler to save storage client configuration.
- *
- * This runs AFTER ::save, so we need to reload and re-save the entity.
- */
-function external_entities_suitecrm_save_storage_config($form, FormStateInterface $form_state) {
-  try {
-    $entity = $form_state->getFormObject()->getEntity();
-    $entity_id = $entity->id();
-
-    // Get storages_tab which contains the aggregator config from form
-    $storages_tab = $form_state->getValue('storages_tab');
-
-    // Log ALL form values to debug (this might be huge)
-    $all_values = $form_state->getValues();
-
-    if (empty($storages_tab)) {
-      return;
-    }
-
-    if (!empty($storages_tab) && isset($storages_tab['config']['storage_clients'][0]['config'])) {
-      $storage_config = $storages_tab['config']['storage_clients'][0]['config'];
-
-      if (!empty($storage_config)) {
-        // Reload the entity that was just saved
-        \Drupal::entityTypeManager()->getStorage('external_entity_type')->resetCache([$entity_id]);
-        $saved_entity = \Drupal::entityTypeManager()->getStorage('external_entity_type')->load($entity_id);
-
-        // Get its data_aggregator
-        $data_aggregator = $saved_entity->get('data_aggregator');
-
-        if (empty($data_aggregator)) {
-          $data_aggregator = [
-            'id' => 'single',
-            'config' => [
-              'storage_clients' => [
-                ['id' => 'suitecrm_rest', 'config' => []],
-              ],
-            ],
-          ];
-        }
-
-        // Update with form values
-        $data_aggregator['config']['storage_clients'][0]['config'] = $storage_config;
-        $saved_entity->set('data_aggregator', $data_aggregator);
-
-        // Save again
-        $saved_entity->save();
-
-        // Export configuration
-        external_entities_suitecrm_export_config($entity_id);
-      }
-    }
-  } catch (\Exception $e) {
-    \Drupal::logger('suitecrm_case')->error('Exception in save_storage_config: @message', [
-      '@message' => $e->getMessage(),
-    ]);
-  }
-}
-
-/**
- * Custom submit handler to save links configuration and fix persistent setting.
- *
- * This runs AFTER the entity has been saved.
- */
-function external_entities_suitecrm_links_form_submit($form, FormStateInterface $form_state) {
-  try {
-    $entity = $form_state->getFormObject()->getEntity();
-    $entity_id = $entity->id();
-
-    // Get links from form
-    $links = $form_state->getValue('links');
-
-    // Remove the help item (it's not a link)
-    unset($links['help']);
-
-    // Filter out empty values
-    $links = array_filter($links, function($value) {
-      return !empty($value);
-    });
-
-    // Open config directly
-    $config = \Drupal::configFactory()->getEditable('external_entities.external_entity_type.' . $entity_id);
-
-    // This is the key setting that enables saves back to the API
-    $config->set('persistent', TRUE);
-
-    // Save links if provided
-    if (!empty($links)) {
-      $config->set('links', $links);
-    }
-
-    // Save the config
-    $config->save();
-
-    // Clear router cache to rebuild routes
-    \Drupal::service('router.builder')->rebuild();
-
-    // Clear entity type cache
-    \Drupal::entityTypeManager()->clearCachedDefinitions();
-
-    // Export configuration
-    external_entities_suitecrm_export_config($entity_id);
-  } catch (\Exception $e) {
-    \Drupal::logger('suitecrm_case')->error('Exception in links_form_submit: @message', [
-      '@message' => $e->getMessage(),
-    ]);
-  }
-}
-
-/**
- * Exports configuration for a specific entity type.
- *
- * @param string $entity_id
- *   The entity type ID.
- */
-function external_entities_suitecrm_export_config($entity_id) {
-  try {
-    // Use config export manager if available
-    $config_manager = \Drupal::service('config.manager');
-    $config_name = 'external_entities.external_entity_type.' . $entity_id;
-
-    // Get the storage
-    $config_storage = \Drupal::service('config.storage');
-    $sync_storage = \Drupal::service('config.storage.sync');
-
-    // Export the config
-    $config_data = $config_storage->read($config_name);
-    if ($config_data) {
-      $sync_storage->write($config_name, $config_data);
-    }
-  } catch (\Exception $e) {
-    \Drupal::logger('external_entities_suitecrm')->warning('Failed to export config: @message', [
-      '@message' => $e->getMessage(),
-    ]);
-  }
-}
-

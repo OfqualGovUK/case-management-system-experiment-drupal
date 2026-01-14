@@ -8,6 +8,7 @@ dependencies:
     - external_entities
     - file
     - filter
+    - form_mode_manager
     - search
     - shortcut
     - system
@@ -24,6 +25,8 @@ permissions:
   - 'delete own files'
   - 'search content'
   - 'update suitecrm_case external entity'
+  - 'use suitecrm_case.case_description form mode'
+  - 'use suitecrm_case.case_status_and_priority form mode'
   - 'use text format basic_html'
   - 'view suitecrm_case external entity'
   - 'view suitecrm_case external entity collection'
