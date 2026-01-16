@@ -1,0 +1,60 @@
+{#
+/**
+ * @file
+ * Theme override to display primary and secondary local tasks (tabs).
+ *
+ * This template integrates Drupal's local tasks with Carbon Design System tabs.
+ *
+ * Available variables:
+ * - primary: HTML list items representing primary tasks (View, Edit, etc.).
+ * - secondary: HTML list items representing secondary tasks.
+ *
+ * Each task in primary/secondary has:
+ * - task.text: The localized title of the task.
+ * - task.url: The URL for the task.
+ * - task.is_active: TRUE if this is the active task.
+ *
+ * @see template_preprocess_menu_local_tasks()
+ */
+#}
+
+{% if primary %}
+  {# Convert Drupal primary tasks to Carbon tabs format #}
+  {% set carbon_tabs = [] %}
+  {% set active_tab_value = null %}
+  {% set counter = 0 %}
+
+  {% for key, task in primary %}
+    {% set tab_id = 'tab-' ~ counter %}
+    {% set tab_value = 'task-' ~ counter %}
+    {% set carbon_tabs = carbon_tabs|merge([{
+      id: tab_id,
+      value: tab_value,
+      target: 'panel-' ~ counter,
+      label: task['#link']['title'],
+      url: task['#link']['url'],
+      disabled: false
+    }]) %}
+    {% if task['#active'] %}
+      {% set active_tab_value = tab_value %}
+    {% endif %}
+    {% set counter = counter + 1 %}
+  {% endfor %}
+
+  {# Render using Carbon tabs component #}
+  <nav class="tabs primary" {{ attributes }}>
+    {{ include('carbon_design_system:tabs', {
+      tabs: carbon_tabs,
+      selected_value: active_tab_value,
+      attributes: create_attribute()
+        .setAttribute('aria-label', 'Primary tabs')
+    }) }}
+  </nav>
+{% endif %}
+
+{% if secondary %}
+  {# Secondary tasks rendered traditionally - Carbon doesn't have nested tabs #}
+  <nav class="tabs secondary" {{ attributes }}>
+    {{ secondary }}
+  </nav>
+{% endif %}

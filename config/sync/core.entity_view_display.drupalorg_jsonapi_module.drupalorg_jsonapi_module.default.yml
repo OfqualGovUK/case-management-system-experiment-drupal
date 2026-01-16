@@ -1,0 +1,39 @@
+uuid: bca4a6e8-93b4-4aac-8b02-a0f680183dc9
+langcode: en
+status: true
+dependencies:
+  module:
+    - external_entities
+    - field_layout
+    - layout_discovery
+third_party_settings:
+  field_layout:
+    id: layout_onecol
+    settings:
+      label: ''
+_core:
+  default_config_hash: fICBHJdwFWRh-J12Cl0mciDjny1YTSeBWIMJ_H7q8Hc
+id: drupalorg_jsonapi_module.drupalorg_jsonapi_module.default
+targetEntityType: drupalorg_jsonapi_module
+bundle: drupalorg_jsonapi_module
+mode: default
+content:
+  status:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  title:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  langcode: true
+  search_api_excerpt: true

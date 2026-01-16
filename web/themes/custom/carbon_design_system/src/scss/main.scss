@@ -5,11 +5,13 @@
 @use '@carbon/styles/scss/themes' as *;
 @use '@carbon/styles/scss/theme';
 @use '@carbon/styles/scss/colors' as colors;
+@use '@carbon/styles/scss/grid';
 
 :root {
   @include theme.theme($white);
 }
 
+// Custom header color variables (your existing code)
 cds-header-nav,
 cds-header-menu,
 cds-header-nav-item,
@@ -19,4 +21,40 @@ cds-header-menu-item {
   --cds-link-primary: #{colors.$blue-60};
   --cds-link-primary-hover: #{colors.$blue-70};
   --cds-icon-primary: #{colors.$blue-60};
+}
+
+main.cds--content {
+  padding-top: 48px; // Mobile
+
+  @media (min-width: 672px) {
+    padding-top: 48px; // Tablet - same height
+  }
+
+  @media (min-width: 1056px) {
+    padding-top: 48px; // Desktop - same height
+  }
+}
+
+cds-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 8000;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 48px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+// Pagination
+
+cds-pagination[page-sizes-hidden] cds-page-sizes-select {
+  display: none !important;
 }

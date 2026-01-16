@@ -1,0 +1,67 @@
+uuid: ba24a6ec-63b1-42f2-83e0-0ad55b422d7e
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - core.entity_form_mode.suitecrm_case.case_description
+    - field.field.suitecrm_case.suitecrm_case.field_account_id
+    - field.field.suitecrm_case.suitecrm_case.field_case_number
+    - field.field.suitecrm_case.suitecrm_case.field_date_modified
+    - field.field.suitecrm_case.suitecrm_case.field_description
+    - field.field.suitecrm_case.suitecrm_case.field_edit_description
+    - field.field.suitecrm_case.suitecrm_case.field_edit_priority_and_status
+    - field.field.suitecrm_case.suitecrm_case.field_name
+    - field.field.suitecrm_case.suitecrm_case.field_priority
+    - field.field.suitecrm_case.suitecrm_case.field_status
+  module:
+    - external_entities
+    - field_group
+    - field_layout
+    - layout_discovery
+    - text
+third_party_settings:
+  field_layout:
+    id: layout_onecol
+    settings:
+      label: ''
+  field_group:
+    group_instruction:
+      children: {  }
+      label: Instruction
+      region: content
+      parent_name: ''
+      weight: 1
+      format_type: markup
+      format_settings:
+        classes: form-wrapper
+        show_empty_fields: true
+        id: ''
+        label_as_html: false
+        markup:
+          value: '<p>This is some simple instruction to be placed inside the form</p>'
+          format: basic_html
+id: suitecrm_case.suitecrm_case.case_description
+targetEntityType: suitecrm_case
+bundle: suitecrm_case
+mode: case_description
+content:
+  field_description:
+    type: text_textarea
+    weight: 0
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  field_account_id: true
+  field_case_number: true
+  field_date_modified: true
+  field_edit_description: true
+  field_edit_priority_and_status: true
+  field_name: true
+  field_priority: true
+  field_status: true
+  langcode: true
+  status: true
+  title: true

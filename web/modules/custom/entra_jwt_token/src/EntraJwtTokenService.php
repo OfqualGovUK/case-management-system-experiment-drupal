@@ -127,13 +127,167 @@ class EntraJwtTokenService {
   }
 
   /**
+   * Check if token is expired.
+   */
+  public function isTokenExpired($token) {
+    try {
+      $parts = explode('.', $token);
+      if (count($parts) === 3) {
+        $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), TRUE);
+        if (isset($payload['exp'])) {
+          $expires_at = $payload['exp'];
+          $current_time = time();
+
+          // Token is expired if current time is past expiry
+          return $current_time >= $expires_at;
+        }
+      }
+    }
+    catch (\Exception $e) {
+      $this->logger->error('Failed to check token expiry: @message', ['@message' => $e->getMessage()]);
+    }
+
+    return TRUE; // Assume expired if we can't parse it
+  }
+
+  /**
+   * Get time until token expiry in seconds.
+   *
+   * @return int|null
+   *   Seconds until expiry, or NULL if token invalid/missing.
+   */
+  public function getTimeUntilExpiry($token = NULL) {
+    if (!$token) {
+      $token = $this->getJwtToken();
+    }
+
+    if (!$token) {
+      return NULL;
+    }
+
+    try {
+      $parts = explode('.', $token);
+      if (count($parts) === 3) {
+        $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), TRUE);
+        if (isset($payload['exp'])) {
+          $expires_at = $payload['exp'];
+          $current_time = time();
+
+          return $expires_at - $current_time;
+        }
+      }
+    }
+    catch (\Exception $e) {
+      $this->logger->error('Failed to get token expiry: @message', ['@message' => $e->getMessage()]);
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Renew JWT tokens using stored refresh token.
+   *
+   * @return bool
+   *   TRUE if renewal successful, FALSE otherwise.
+   */
+  public function renewToken() {
+    // Get refresh token from session/storage
+    $refresh_token = $this->session->get('entra_refresh_token');
+    if (!$refresh_token) {
+      $refresh_token = $this->tempStore->get('refresh_token');
+    }
+
+    if (!$refresh_token) {
+      $this->logger->warning('Cannot renew token: No refresh token available');
+      return FALSE;
+    }
+
+    try {
+      // Get configuration from settings
+      $settings = \Drupal::service('settings');
+      $client_id = $settings->get('OPENID_CLIENT_ID');
+      $client_secret = $settings->get('OPENID_CLIENT_SECRET');
+      $token_endpoint = $settings->get('TOKEN_ENDPOINT');
+
+      if (!$client_id || !$client_secret || !$token_endpoint) {
+        $this->logger->error('Cannot renew token: Missing OPENID_CLIENT_ID, OPENID_CLIENT_SECRET, or TOKEN_ENDPOINT in settings.php');
+        return FALSE;
+      }
+
+      $http_client = \Drupal::httpClient();
+      $response = $http_client->post($token_endpoint, [
+        'form_params' => [
+          'client_id' => $client_id,
+          'client_secret' => $client_secret,
+          'grant_type' => 'refresh_token',
+          'refresh_token' => $refresh_token,
+          'scope' => 'openid offline_access api://' . $client_id . '/access_as_user',
+        ],
+      ]);
+
+      $data = json_decode($response->getBody()->getContents(), TRUE);
+
+      if (isset($data['id_token']) && isset($data['access_token'])) {
+        // Store new tokens
+        $this->storeJwtToken($data['id_token']);
+        $this->storeAccessToken($data['access_token']);
+
+        // Store new refresh token if provided
+        if (isset($data['refresh_token'])) {
+          $this->storeRefreshToken($data['refresh_token']);
+        }
+
+        $this->logger->info('Successfully renewed JWT tokens');
+        return TRUE;
+      }
+
+      $this->logger->error('Token renewal response missing expected tokens');
+      return FALSE;
+
+    }
+    catch (\Exception $e) {
+      $this->logger->error('Failed to renew token: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+      return FALSE;
+    }
+  }
+
+  /**
+   * Store refresh token.
+   */
+  public function storeRefreshToken($token) {
+    try {
+      $this->session->set('entra_refresh_token', $token);
+      $this->tempStore->set('refresh_token', $token);
+      $this->logger->info('Refresh token stored successfully');
+    }
+    catch (\Exception $e) {
+      $this->logger->error('Failed to store refresh token: @message', ['@message' => $e->getMessage()]);
+    }
+  }
+
+  /**
+   * Get refresh token.
+   */
+  public function getRefreshToken() {
+    $token = $this->session->get('entra_refresh_token');
+    if (!$token) {
+      $token = $this->tempStore->get('refresh_token');
+    }
+    return $token;
+  }
+
+  /**
    * Clear all stored tokens.
    */
   public function clearTokens() {
     $this->session->remove('entra_jwt_token');
     $this->session->remove('entra_access_token');
+    $this->session->remove('entra_refresh_token');
     $this->tempStore->delete('jwt_token');
     $this->tempStore->delete('access_token');
+    $this->tempStore->delete('refresh_token');
     $this->logger->info('All tokens cleared');
   }
 

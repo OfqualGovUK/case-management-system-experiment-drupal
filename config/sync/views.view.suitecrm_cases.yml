@@ -6,8 +6,10 @@ dependencies:
     - field.storage.suitecrm_case.field_name
     - field.storage.suitecrm_case.field_priority
     - system.menu.main
+    - user.role.authenticated
   module:
     - carbon_design_system_views
+    - user
     - xntt_views
 id: suitecrm_cases
 label: 'SuiteCRM Cases'
@@ -234,7 +236,7 @@ display:
           exclude: false
           alter:
             alter_text: true
-            text: '<a href="/suitecrm-case/{{ id }}" aria-label="View Case: {{ title }}">View case</a>'
+            text: '<a href="/case/{{ id }}" aria-label="View Case: {{ title }}">View case</a>'
             make_link: false
             path: ''
             absolute: false
@@ -286,7 +288,7 @@ display:
           separator: ', '
           field_api_classes: 0
       pager:
-        type: mini
+        type: full
         options:
           offset: 0
           pagination_heading_level: h4
@@ -296,6 +298,8 @@ display:
           tags:
             next: ››
             previous: ‹‹
+            first: '« First'
+            last: 'Last »'
           expose:
             items_per_page: false
             items_per_page_label: 'Items per page'
@@ -304,6 +308,7 @@ display:
             items_per_page_options_all_label: '- All -'
             offset: false
             offset_label: Offset
+          quantity: 9
       exposed_form:
         type: basic
         options:
@@ -315,13 +320,30 @@ display:
           sort_asc_label: Asc
           sort_desc_label: Desc
       access:
+        type: role
+        options:
+          role:
+            authenticated: authenticated
+      cache:
         type: none
         options: {  }
-      cache:
-        type: tag
-        options: {  }
       empty: {  }
-      sorts: {  }
+      sorts:
+        id:
+          id: id
+          table: xntt_views_suitecrm_case
+          field: id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: suitecrm_case
+          entity_field: id
+          plugin_id: standard
+          order: ASC
+          expose:
+            label: ''
+            field_identifier: ''
+          exposed: false
       arguments: {  }
       filters: {  }
       style:
@@ -340,17 +362,34 @@ display:
         type: views_query
         options: {  }
       relationships: {  }
-      header: {  }
+      use_ajax: true
+      header:
+        area_text_custom:
+          id: area_text_custom
+          table: views
+          field: area_text_custom
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: text_custom
+          empty: true
+          content: '<a class="button button--primary js-form-submit form-submit cds--btn cds--btn--primary" href="/case/add">Add a new case</a>'
+          tokenize: false
       footer: {  }
+      rendering_language: '***LANGUAGE_entity_translation***'
       display_extenders: {  }
     cache_metadata:
       max-age: -1
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - user.roles
       tags:
         - 'config:field.storage.suitecrm_case.field_name'
         - 'config:field.storage.suitecrm_case.field_priority'
+    cache:
+      type: none
+      options: '{}'
   page_1:
     id: page_1
     display_title: Page
@@ -373,6 +412,7 @@ display:
       contexts:
         - 'languages:language_interface'
         - url.query_args
+        - user.roles
       tags:
         - 'config:field.storage.suitecrm_case.field_name'
         - 'config:field.storage.suitecrm_case.field_priority'

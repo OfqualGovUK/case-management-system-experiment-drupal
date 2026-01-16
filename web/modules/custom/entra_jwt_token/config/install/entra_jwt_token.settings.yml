@@ -1,0 +1,6 @@
+enable_auto_renewal: true
+renewal_threshold: 10
+enable_session_timeout: false
+session_timeout: 60
+session_warning: 5
+log_renewals: true

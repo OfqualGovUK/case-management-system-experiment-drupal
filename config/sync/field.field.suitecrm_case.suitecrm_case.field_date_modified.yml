@@ -1,18 +1,18 @@
-uuid: 59f09d3c-c8ea-45f2-a57d-d2dc8f802c97
+uuid: f01fc16b-7b0d-4fdb-81f8-33b50f8f321b
 langcode: en-gb
 status: true
 dependencies:
   config:
-    - field.storage.suitecrm_case.field_last_modified
+    - field.storage.suitecrm_case.field_date_modified
     - external_entities.external_entity_type.suitecrm_case
   module:
     - datetime
     - external_entities
-id: suitecrm_case.suitecrm_case.field_last_modified
-field_name: field_last_modified
+id: suitecrm_case.suitecrm_case.field_date_modified
+field_name: field_date_modified
 entity_type: suitecrm_case
 bundle: suitecrm_case
-label: 'Last Modified'
+label: 'Date Modified'
 description: ''
 required: false
 translatable: false

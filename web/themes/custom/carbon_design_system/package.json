@@ -1,13 +1,15 @@
 {
   "name": "carbon_design_system_theme",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev:components": "vite build --watch",
     "dev:assets": "vite build --watch",
+    "dev:js": "vite build --mode js --watch",
     "build:assets": "vite build",
+    "build:js": "vite build --mode js",
     "build:components": "for dir in components/*/; do component=$(basename \"$dir\"); if [ -f \"$dir/src/$component.js\" ]; then vite build --mode $component; fi; done",
-    "build": "npm run build:assets && npm run build:components",
+    "build": "npm run build:assets && npm run build:js && npm run build:components",
     "preview": "vite preview"
   },
   "dependencies": {

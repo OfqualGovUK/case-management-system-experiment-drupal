@@ -1,0 +1,39 @@
+uuid: 873a991c-1091-4f80-96d6-c4e5874601df
+langcode: en
+status: true
+dependencies:
+  module:
+    - external_entities
+    - field_layout
+    - layout_discovery
+third_party_settings:
+  field_layout:
+    id: layout_onecol
+    settings:
+      label: ''
+_core:
+  default_config_hash: xe7s8e2Bq3vPM373n_buH5uDegOwmBzlGf4SzMbQkMA
+id: drupalorg_rest_issue.drupalorg_rest_issue.default
+targetEntityType: drupalorg_rest_issue
+bundle: drupalorg_rest_issue
+mode: default
+content:
+  status:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  title:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  langcode: true
+  search_api_excerpt: true

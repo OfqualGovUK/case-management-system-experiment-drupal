@@ -1,0 +1,56 @@
+uuid: 439d4e01-98dc-46ec-b16a-f1fb25317637
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - core.entity_form_mode.suitecrm_case.case_status_and_priority
+    - field.field.suitecrm_case.suitecrm_case.field_account_id
+    - field.field.suitecrm_case.suitecrm_case.field_case_number
+    - field.field.suitecrm_case.suitecrm_case.field_date_modified
+    - field.field.suitecrm_case.suitecrm_case.field_description
+    - field.field.suitecrm_case.suitecrm_case.field_edit_description
+    - field.field.suitecrm_case.suitecrm_case.field_edit_priority_and_status
+    - field.field.suitecrm_case.suitecrm_case.field_name
+    - field.field.suitecrm_case.suitecrm_case.field_priority
+    - field.field.suitecrm_case.suitecrm_case.field_status
+  module:
+    - external_entities
+    - field_layout
+    - layout_discovery
+third_party_settings:
+  field_layout:
+    id: layout_onecol
+    settings:
+      label: ''
+id: suitecrm_case.suitecrm_case.case_status_and_priority
+targetEntityType: suitecrm_case
+bundle: suitecrm_case
+mode: case_status_and_priority
+content:
+  field_priority:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_status:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  field_account_id: true
+  field_case_number: true
+  field_date_modified: true
+  field_description: true
+  field_edit_description: true
+  field_edit_priority_and_status: true
+  field_name: true
+  langcode: true
+  status: true
+  title: true
