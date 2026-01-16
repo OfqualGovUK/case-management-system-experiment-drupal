@@ -1,0 +1,5 @@
+services:
+  external_entities_suitecrm.route_subscriber:
+    class: Drupal\external_entities_suitecrm\Routing\RouteSubscriber
+    tags:
+      - { name: event_subscriber }

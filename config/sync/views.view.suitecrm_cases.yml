@@ -298,6 +298,8 @@ display:
           tags:
             next: ››
             previous: ‹‹
+            first: '« First'
+            last: 'Last »'
           expose:
             items_per_page: false
             items_per_page_label: 'Items per page'
@@ -306,6 +308,7 @@ display:
             items_per_page_options_all_label: '- All -'
             offset: false
             offset_label: Offset
+          quantity: 9
       exposed_form:
         type: basic
         options:
@@ -325,7 +328,22 @@ display:
         type: none
         options: {  }
       empty: {  }
-      sorts: {  }
+      sorts:
+        id:
+          id: id
+          table: xntt_views_suitecrm_case
+          field: id
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: suitecrm_case
+          entity_field: id
+          plugin_id: standard
+          order: ASC
+          expose:
+            label: ''
+            field_identifier: ''
+          exposed: false
       arguments: {  }
       filters: {  }
       style:
@@ -345,7 +363,18 @@ display:
         options: {  }
       relationships: {  }
       use_ajax: true
-      header: {  }
+      header:
+        area_text_custom:
+          id: area_text_custom
+          table: views
+          field: area_text_custom
+          relationship: none
+          group_type: group
+          admin_label: ''
+          plugin_id: text_custom
+          empty: true
+          content: '<a class="button button--primary js-form-submit form-submit cds--btn cds--btn--primary" href="/case/add">Add a new case</a>'
+          tokenize: false
       footer: {  }
       rendering_language: '***LANGUAGE_entity_translation***'
       display_extenders: {  }

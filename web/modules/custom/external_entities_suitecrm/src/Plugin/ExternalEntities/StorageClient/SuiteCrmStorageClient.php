@@ -253,7 +253,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     // Call parent first
     parent::submitConfigurationForm($form, $form_state);
-    
+
     // Save configuration from form values
     $this->configuration['list_endpoint'] = $form_state->getValue('list_endpoint') ?: '';
     $this->configuration['push_endpoint'] = $form_state->getValue('push_endpoint') ?: '';
@@ -338,7 +338,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
     catch (\GuzzleHttp\Exception\ClientException $e) {
       $status_code = $e->getResponse()->getStatusCode();
       $response_body = (string) $e->getResponse()->getBody();
-      
+
       // Log the error
       $this->logger->error('SuiteCRM API ClientException (@code): @message. Response: @response', [
         '@code' => $status_code,
@@ -351,7 +351,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
         // Check if JWT token is expiring/expired
         $jwt_service = \Drupal::service('entra_jwt_token.token_service');
         $token = $jwt_service->getJwtToken();
-        
+
         if ($token) {
           // Token exists but API says it's invalid - likely expired
           $this->messenger->addError($this->t('Your authentication token has expired. Please <a href="@login">log in again</a>.', [
@@ -364,7 +364,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
             '@login' => '/user/login',
           ]));
         }
-        
+
         return [];
       }
       elseif ($status_code === 403) {
@@ -396,7 +396,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
     }
     catch (\GuzzleHttp\Exception\ServerException $e) {
       $status_code = $e->getResponse()->getStatusCode();
-      
+
       $this->logger->error('SuiteCRM API ServerException (@code): @message', [
         '@code' => $status_code,
         '@message' => $e->getMessage(),
@@ -405,7 +405,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
       $this->messenger->addError($this->t('SuiteCRM is currently experiencing issues (Error @code). Please try again later.', [
         '@code' => $status_code,
       ]));
-      
+
       return [];
     }
     catch (\GuzzleHttp\Exception\ConnectException $e) {
@@ -414,7 +414,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
       ]);
 
       $this->messenger->addError($this->t('Unable to connect to SuiteCRM. Please check your network connection or try again later.'));
-      
+
       return [];
     }
     catch (\Exception $e) {
@@ -423,7 +423,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
       ]);
 
       $this->messenger->addError($this->t('An unexpected error occurred. Please try again or contact support.'));
-      
+
       return [];
     }
   }
@@ -492,16 +492,37 @@ class SuiteCrmStorageClient extends StorageClientBase {
       }
     }
 
-    // IMPORTANT: Work on a copy for sorting/pagination to preserve cached data
     $result = $transformed;
 
     // Apply sorting in PHP since API doesn't support it.
     if (!empty($sorts)) {
       $sort_field = array_key_first($sorts);
       $sort_direction = $sorts[$sort_field];
+
+      // Get field definitions to determine data type
+      $field_manager = \Drupal::service('entity_field.manager');
+      $field_definitions = $field_manager->getFieldDefinitions('suitecrm_case', 'suitecrm_case');
+
+      // Determine if we should do numeric comparison
+      $is_numeric_field = FALSE;
+      if (isset($field_definitions[$sort_field])) {
+        $field_type = $field_definitions[$sort_field]->getType();
+        // Numeric field types
+        $is_numeric_field = in_array($field_type, ['integer', 'decimal', 'float', 'number']);
+      }
+
       // Use uasort to preserve keys (case_number)
-      uasort($result, function ($a, $b) use ($sort_field, $sort_direction) {
-        $cmp = ($a[$sort_field] ?? '') <=> ($b[$sort_field] ?? '');
+      uasort($result, function ($a, $b) use ($sort_field, $sort_direction, $is_numeric_field) {
+        $a_val = $a[$sort_field] ?? '';
+        $b_val = $b[$sort_field] ?? '';
+
+        // Use numeric comparison if field type is numeric
+        if ($is_numeric_field && is_numeric($a_val) && is_numeric($b_val)) {
+          $cmp = (float)$a_val <=> (float)$b_val;
+        } else {
+          $cmp = $a_val <=> $b_val;
+        }
+
         return $sort_direction === 'DESC' ? -$cmp : $cmp;
       });
     }
@@ -567,7 +588,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
   public function load(string|int $id): ?array {
     // Load from full dataset (without pagination)
     $all_cases = $this->query();
-    
+
     // Return the case by its ID (case_number key)
     return $all_cases[$id] ?? NULL;
   }
@@ -591,7 +612,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
         $filtered[$id] = $all_cases[$id];
       }
     }
-    
+
     return $filtered;
   }
 
@@ -617,6 +638,21 @@ class SuiteCrmStorageClient extends StorageClientBase {
       }
 
       $result = $this->makeRequest($method, $endpoint, [], $data);
+
+      // For CREATE operations, populate entity with response data
+      // This prevents External Entities from throwing warnings about missing fields
+      if ($is_new && !empty($result) && is_array($result)) {
+        // Extract case_number from the response if available
+        if (isset($result['attributes']['case_number'])) {
+          $entity->set('field_case_number', $result['attributes']['case_number']);
+        }
+        // Set the ID if returned
+        if (isset($result['id'])) {
+          $entity->set('id', $result['attributes']['case_number'] ?? $result['id']);
+        }
+        // Mark entity as no longer new to prevent re-save attempts
+        $entity->enforceIsNew(FALSE);
+      }
 
       // Clear cache after save (regardless of response)
       $this->clearCache();
@@ -699,13 +735,13 @@ class SuiteCrmStorageClient extends StorageClientBase {
       'created',
       'changed',
     ];
-    
+
     // Add configured read-only fields
     $read_only_fields = $this->configuration['read_only_fields'] ?? [];
     if (!is_array($read_only_fields)) {
       $read_only_fields = [];
     }
-    
+
     $skip_fields = array_merge($system_fields, $read_only_fields);
 
     foreach ($field_definitions as $field_name => $field_definition) {
@@ -724,6 +760,13 @@ class SuiteCrmStorageClient extends StorageClientBase {
           if ($field_value !== NULL && $field_value !== '') {
             // Map Drupal field names to API field names
             $api_field_name = $this->mapFieldName($field_name);
+
+            // CRITICAL: Skip case_number on CREATE (SuiteCRM auto-generates it)
+            // But include it on UPDATE (needed to identify the case)
+            if ($api_field_name === 'case_number' && $entity->isNew()) {
+              continue;
+            }
+
             $data['data']['attributes'][$api_field_name] = $field_value;
           }
         }
@@ -754,11 +797,11 @@ class SuiteCrmStorageClient extends StorageClientBase {
     // Get field mappers from the external entity type configuration
     if ($this->externalEntityType) {
       $field_mappers = $this->externalEntityType->get('field_mappers');
-      
+
       // Look for this field in the field mappers
       if (isset($field_mappers[$drupal_field_name])) {
         $field_mapper = $field_mappers[$drupal_field_name];
-        
+
         // Check if there's a mapping configured
         if (isset($field_mapper['config']['property_mappings']['value']['config']['mapping'])) {
           $api_field_name = $field_mapper['config']['property_mappings']['value']['config']['mapping'];
@@ -768,18 +811,18 @@ class SuiteCrmStorageClient extends StorageClientBase {
         }
       }
     }
-    
+
     // Fallback: strip 'field_' prefix if present
     if (strpos($drupal_field_name, 'field_') === 0) {
       return substr($drupal_field_name, 6);
     }
-    
+
     // Special cases for common Drupal fields
     $static_mapping = [
       'title' => 'name',
       'default_langcode' => 'langcode',
     ];
-    
+
     return $static_mapping[$drupal_field_name] ?? $drupal_field_name;
   }
 

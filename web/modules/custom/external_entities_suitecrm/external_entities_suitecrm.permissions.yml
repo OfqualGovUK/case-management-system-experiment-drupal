@@ -1,0 +1,12 @@
+# Permissions for SuiteCRM form modes
+'use suitecrm_case.default form mode':
+  title: 'Use default form mode for SuiteCRM Cases'
+  description: 'Allows using the default form mode when creating/editing cases'
+
+'use suitecrm_case.create form mode':
+  title: 'Use create form mode for SuiteCRM Cases'
+  description: 'Allows using the create form mode when creating cases'
+
+'use suitecrm_case.fmm_create form mode':
+  title: 'Use fmm_create form mode for SuiteCRM Cases'
+  description: 'Allows using the fmm_create form mode when creating cases'

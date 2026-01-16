@@ -74,6 +74,7 @@ module:
   xntt_file_field: 0
   xntt_views: 0
   xnttmanager: 0
+  entity_form_steps: 1
   pathauto: 1
   externalauth: 10
   views: 10

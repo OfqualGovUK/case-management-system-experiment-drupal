@@ -1,0 +1,23 @@
+uuid: 74b84b6d-9b32-4528-a5c9-3538f733ebc5
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.storage.suitecrm_case.field_account_id
+    - external_entities.external_entity_type.suitecrm_case
+  module:
+    - external_entities
+id: suitecrm_case.suitecrm_case.field_account_id
+field_name: field_account_id
+entity_type: suitecrm_case
+bundle: suitecrm_case
+label: 'Account ID'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: c021f56f-ff72-2619-be72-68de78f7f8d7
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,8 +1,9 @@
-uuid: d5717e1f-8280-4269-a98f-e5ec0b4a5ac0
+uuid: 1a29593f-c9fc-4b85-b2b6-45b299157fd3
 langcode: en-gb
 status: true
 dependencies:
   config:
+    - core.entity_form_mode.suitecrm_case.create
     - field.field.suitecrm_case.suitecrm_case.field_account_id
     - field.field.suitecrm_case.suitecrm_case.field_case_number
     - field.field.suitecrm_case.suitecrm_case.field_date_modified
@@ -13,9 +14,7 @@ dependencies:
     - field.field.suitecrm_case.suitecrm_case.field_priority
     - field.field.suitecrm_case.suitecrm_case.field_status
   module:
-    - datetime
     - external_entities
-    - external_entities_suitecrm
     - field_group
     - field_layout
     - layout_discovery
@@ -30,7 +29,7 @@ third_party_settings:
       children: {  }
       label: Instruction
       region: content
-      parent_name: ''
+      parent_name: group_step_2
       weight: 3
       format_type: markup
       format_settings:
@@ -41,24 +40,65 @@ third_party_settings:
         markup:
           value: '<p>This is some simple instruction to be placed inside the form</p>'
           format: basic_html
-id: suitecrm_case.suitecrm_case.default
+    group_step_1:
+      children:
+        - field_name
+        - field_priority
+      label: 'Step 1'
+      region: content
+      parent_name: ''
+      weight: 0
+      format_type: steps
+      format_settings:
+        classes: ''
+        id: ''
+        label_as_html: false
+        add_label: 'Name and Priority'
+        edit_label: 'Edit Name and Priority'
+        cancel_button: Cancel
+        cancel_path: ''
+        previous_button: ''
+        next_button: Continue
+        submit_button: ''
+        preview_button: ''
+        delete_button: ''
+        delete_path: ''
+    group_step_2:
+      children:
+        - field_description
+        - group_instruction
+        - field_account_id
+      label: 'Step 2'
+      region: content
+      parent_name: ''
+      weight: 1
+      format_type: steps
+      format_settings:
+        classes: ''
+        id: ''
+        label_as_html: false
+        add_label: Description
+        edit_label: 'Edit Description'
+        cancel_button: ''
+        cancel_path: ''
+        previous_button: ''
+        next_button: ''
+        submit_button: ''
+        preview_button: ''
+        delete_button: ''
+        delete_path: ''
+id: suitecrm_case.suitecrm_case.create
 targetEntityType: suitecrm_case
 bundle: suitecrm_case
-mode: default
+mode: create
 content:
   field_account_id:
     type: string_textfield
-    weight: 14
+    weight: 4
     region: content
     settings:
       size: 60
       placeholder: ''
-    third_party_settings: {  }
-  field_date_modified:
-    type: datetime_default
-    weight: 12
-    region: content
-    settings: {  }
     third_party_settings: {  }
   field_description:
     type: text_textarea
@@ -68,21 +108,9 @@ content:
       rows: 5
       placeholder: ''
     third_party_settings: {  }
-  field_edit_description:
-    type: form_mode_links_widget
-    weight: 11
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_edit_priority_and_status:
-    type: form_mode_links_widget
-    weight: 13
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   field_name:
     type: string_textfield
-    weight: 0
+    weight: 1
     region: content
     settings:
       size: 60
@@ -90,15 +118,7 @@ content:
     third_party_settings: {  }
   field_priority:
     type: string_textfield
-    weight: 9
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_status:
-    type: string_textfield
-    weight: 10
+    weight: 2
     region: content
     settings:
       size: 60
@@ -106,6 +126,10 @@ content:
     third_party_settings: {  }
 hidden:
   field_case_number: true
+  field_date_modified: true
+  field_edit_description: true
+  field_edit_priority_and_status: true
+  field_status: true
   langcode: true
   status: true
   title: true

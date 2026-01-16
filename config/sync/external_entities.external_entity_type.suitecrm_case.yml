@@ -8,6 +8,8 @@ dependencies:
 third_party_settings:
   external_entities_pathauto:
     generate_aliases: true
+  external_entities_suitecrm:
+    add_form_mode: create
 id: suitecrm_case
 label: 'SuiteCRM Case'
 label_plural: 'SuiteCRM Cases'
@@ -150,14 +152,14 @@ data_aggregator:
       -
         id: suitecrm_rest
         config:
-          list_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases'
+          list_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases?page[number]=1&page[size]=9999999'
           push_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule'
           single_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases?filter[case_number][eq]={id}'
           api_type: Cases
           format: json
           parameters: ''
           response_data_path: data
-          read_only_fields: "field_date\r\nfield_last_modified"
+          read_only_fields: "field_date\r\nfield_last_modified\r\ncase_number"
 data_aggregator_notes: ''
 language_settings: null
 persistent_cache_max_age: 300
