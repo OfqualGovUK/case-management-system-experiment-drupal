@@ -5,6 +5,7 @@ namespace Drupal\external_entities_suitecrm\Plugin\ExternalEntities\StorageClien
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
@@ -47,6 +48,13 @@ class SuiteCrmStorageClient extends StorageClientBase {
   protected $cacheBackend;
 
   /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
    * Constructs a SuiteCrmStorageClient object.
    *
    * @param array $configuration
@@ -75,6 +83,8 @@ class SuiteCrmStorageClient extends StorageClientBase {
    *   The Entra JWT token service.
    * @param mixed $cache_backend
    *   The cache backend.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
    */
   public function __construct(
     array $configuration,
@@ -90,6 +100,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
     ClientInterface $http_client,
     EntraJwtTokenService $token_service,
     $cache_backend,
+    $messenger,
   ) {
     parent::__construct(
       $configuration,
@@ -106,6 +117,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
     $this->httpClient = $http_client;
     $this->tokenService = $token_service;
     $this->cacheBackend = $cache_backend;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -125,7 +137,8 @@ class SuiteCrmStorageClient extends StorageClientBase {
       $configuration['external_entity_type'] ?? NULL,
       $container->get('http_client'),
       $container->get('entra_jwt_token.token_service'),
-      $container->get('cache.default')
+      $container->get('cache.default'),
+      $container->get('messenger')
     );
   }
 
@@ -322,8 +335,96 @@ class SuiteCrmStorageClient extends StorageClientBase {
 
       return $data;
     }
+    catch (\GuzzleHttp\Exception\ClientException $e) {
+      $status_code = $e->getResponse()->getStatusCode();
+      $response_body = (string) $e->getResponse()->getBody();
+      
+      // Log the error
+      $this->logger->error('SuiteCRM API ClientException (@code): @message. Response: @response', [
+        '@code' => $status_code,
+        '@message' => $e->getMessage(),
+        '@response' => $response_body,
+      ]);
+
+      // Handle specific error codes
+      if ($status_code === 401) {
+        // Check if JWT token is expiring/expired
+        $jwt_service = \Drupal::service('entra_jwt_token.token_service');
+        $token = $jwt_service->getJwtToken();
+        
+        if ($token) {
+          // Token exists but API says it's invalid - likely expired
+          $this->messenger->addError($this->t('Your authentication token has expired. Please <a href="@login">log in again</a>.', [
+            '@login' => '/user/login',
+          ]));
+        }
+        else {
+          // No token at all
+          $this->messenger->addError($this->t('Authentication required. Please <a href="@login">log in</a>.', [
+            '@login' => '/user/login',
+          ]));
+        }
+        
+        return [];
+      }
+      elseif ($status_code === 403) {
+        $this->messenger->addError($this->t('Access denied. You do not have permission to perform this action.'));
+        return [];
+      }
+      elseif ($status_code === 404) {
+        $this->messenger->addWarning($this->t('The requested resource was not found.'));
+        return [];
+      }
+      elseif ($status_code === 422) {
+        // Validation error - try to extract message
+        $error_data = json_decode($response_body, TRUE);
+        if (isset($error_data['message'])) {
+          $this->messenger->addError($this->t('Validation error: @message', ['@message' => $error_data['message']]));
+        }
+        else {
+          $this->messenger->addError($this->t('The data provided was invalid.'));
+        }
+        return [];
+      }
+      else {
+        // Generic client error (4xx)
+        $this->messenger->addError($this->t('An error occurred while communicating with SuiteCRM (Error @code). Please try again or contact support.', [
+          '@code' => $status_code,
+        ]));
+        return [];
+      }
+    }
+    catch (\GuzzleHttp\Exception\ServerException $e) {
+      $status_code = $e->getResponse()->getStatusCode();
+      
+      $this->logger->error('SuiteCRM API ServerException (@code): @message', [
+        '@code' => $status_code,
+        '@message' => $e->getMessage(),
+      ]);
+
+      $this->messenger->addError($this->t('SuiteCRM is currently experiencing issues (Error @code). Please try again later.', [
+        '@code' => $status_code,
+      ]));
+      
+      return [];
+    }
+    catch (\GuzzleHttp\Exception\ConnectException $e) {
+      $this->logger->error('SuiteCRM API ConnectException: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+
+      $this->messenger->addError($this->t('Unable to connect to SuiteCRM. Please check your network connection or try again later.'));
+      
+      return [];
+    }
     catch (\Exception $e) {
-      throw $e;
+      $this->logger->error('SuiteCRM API unexpected error: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+
+      $this->messenger->addError($this->t('An unexpected error occurred. Please try again or contact support.'));
+      
+      return [];
     }
   }
 

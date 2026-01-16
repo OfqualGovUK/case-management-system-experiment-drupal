@@ -1,0 +1,35 @@
+name: Modal
+status: stable
+description: Implements the Carbon Design System Modal using Web Components. Modals communicate information, display actions, or require user input without leaving the current context.
+props:
+  attributes:
+    type: Drupal\Core\Template\Attribute
+    description: HTML attributes for the <cds-modal> element.
+    required: false
+  open:
+    type: boolean
+    description: Whether the modal is open by default.
+    required: false
+    default: false
+  size:
+    type: string
+    description: Modal size (xs, sm, md, lg). Default is md.
+    required: false
+  danger:
+    type: boolean
+    description: Whether this is a danger modal (for destructive actions).
+    required: false
+    default: false
+  passive:
+    type: boolean
+    description: Whether this is a passive modal (informational, no actions).
+    required: false
+    default: false
+  heading:
+    type: string
+    description: Modal heading/title.
+    required: false
+  label:
+    type: string
+    description: Optional label above the heading.
+    required: false

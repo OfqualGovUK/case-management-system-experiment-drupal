@@ -866,6 +866,11 @@ $clientSecret = getenv('OPENID_CLIENT_SECRET');
 $tenantId = getenv('AZURE_TENANT_ID');
 $userinfoEndpoint = getenv('OPENID_USERINFO_ENDPOINT');
 
+$settings['OPENID_CLIENT_ID'] = $clientId;
+$settings['OPENID_CLIENT_SECRET'] = $clientSecret;
+$settings['AZURE_TENANT_ID'] = $tenantId;
+$settings['TOKEN_ENDPOINT'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/token';
+
 // Configure OpenID Connect client
 $config['openid_connect.client.entraid']['settings']['client_id'] = $clientId;
 $config['openid_connect.client.entraid']['settings']['client_secret'] = $clientSecret;

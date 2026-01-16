@@ -9,6 +9,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Session\AccountInterface;
 
 /**
  * Implements hook_entity_view_alter().
@@ -56,50 +57,50 @@ function external_entities_suitecrm_entity_update(EntityInterface $entity) {
   if ($entity->getEntityTypeId() !== 'external_entity_type') {
     return;
   }
-
+  
   $entity_id = $entity->id();
   if (!$entity_id || strpos($entity_id, 'suitecrm_') !== 0) {
     return;
   }
-
+  
   // Get storage config from POST data
   $request = \Drupal::request();
   $post_data = $request->request->all();
-
+  
   if (isset($post_data['storages_tab']['config']['storage_clients'][0]['config'])) {
     $storage_config = $post_data['storages_tab']['config']['storage_clients'][0]['config'];
-
+    
     $data_aggregator = $entity->get('data_aggregator');
     if (!empty($data_aggregator)) {
       $data_aggregator['config']['storage_clients'][0]['config'] = $storage_config;
       $entity->set('data_aggregator', $data_aggregator);
-
+      
       if (!isset($entity->isUpdatingFromHook)) {
         $entity->isUpdatingFromHook = TRUE;
         $entity->save();
       }
     }
   }
-
+  
   // Get links from POST
   $config = \Drupal::configFactory()->getEditable('external_entities.external_entity_type.' . $entity_id);
-
+  
   if (isset($post_data['links'])) {
     $links = $post_data['links'];
     unset($links['help']);
     $links = array_filter($links, function($value) {
       return !empty($value);
     });
-
+    
     if (!empty($links)) {
       $config->set('links', $links);
     }
   }
-
+  
   // Set persistent
   $config->set('persistent', TRUE);
   $config->save();
-
+  
   \Drupal::service('router.builder')->rebuild();
   \Drupal::entityTypeManager()->clearCachedDefinitions();
 }
@@ -127,11 +128,11 @@ function external_entities_suitecrm_entity_presave(EntityInterface $entity) {
 
     if ($current_entity) {
       $current_data_aggregator = $current_entity->get('data_aggregator');
-
+      
       if (!empty($current_data_aggregator['config']['storage_clients'][0]['config'])) {
-        $data_aggregator['config']['storage_clients'][0]['config'] =
+        $data_aggregator['config']['storage_clients'][0]['config'] = 
           $current_data_aggregator['config']['storage_clients'][0]['config'];
-
+        
         $entity->set('data_aggregator', $data_aggregator);
       }
     }
@@ -143,7 +144,7 @@ function external_entities_suitecrm_entity_presave(EntityInterface $entity) {
  */
 function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   $entity = $form_state->getFormObject()->getEntity();
-
+  
   // Only add links UI for suitecrm entities
   if (strpos($entity->id(), 'suitecrm_') !== 0) {
     return;
@@ -183,4 +184,59 @@ function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$
       '#placeholder' => $key === 'add-form' ? '/case/add' : '/case/{suitecrm_case}',
     ];
   }
+
+  // The entity_update hook will handle saving these
+}
+
+/**
+ * Implements hook_openid_connect_post_authorize().
+ *
+ * Store the refresh token after successful OpenID Connect authorization.
+ */
+function external_entities_suitecrm_openid_connect_post_authorize(AccountInterface $account, array $context) {
+  // Only process for Entra ID client
+  if (isset($context['plugin_id']) && $context['plugin_id'] === 'entraid') {
+    
+    // Get tokens from context
+    $tokens = $context['tokens'] ?? [];
+    
+    if (!empty($tokens)) {
+      $jwt_service = \Drupal::service('entra_jwt_token.token_service');
+      
+      // Store ID token (JWT)
+      if (isset($tokens['id_token'])) {
+        $jwt_service->storeJwtToken($tokens['id_token']);
+      }
+      
+      // Store access token
+      if (isset($tokens['access_token'])) {
+        $jwt_service->storeAccessToken($tokens['access_token']);
+      }
+      
+      // Store refresh token - CRITICAL for auto-renewal!
+      if (isset($tokens['refresh_token'])) {
+        $jwt_service->storeRefreshToken($tokens['refresh_token']);
+        \Drupal::logger('entra_jwt_token')->info('Refresh token stored for user @uid', [
+          '@uid' => $account->id(),
+        ]);
+      }
+      else {
+        \Drupal::logger('entra_jwt_token')->warning('No refresh token received. Auto-renewal will not work. Did you request offline_access scope?');
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_user_logout().
+ *
+ * Clear all tokens on logout.
+ */
+function external_entities_suitecrm_user_logout(AccountInterface $account) {
+  $jwt_service = \Drupal::service('entra_jwt_token.token_service');
+  $jwt_service->clearTokens();
+  
+  \Drupal::logger('entra_jwt_token')->info('Tokens cleared for user @uid on logout', [
+    '@uid' => $account->id(),
+  ]);
 }

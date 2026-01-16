@@ -8,3 +8,9 @@ pagination:
     assets/js/pagination-handler.js: {}
   dependencies:
     - core/drupal
+
+modal:
+  js:
+    components/modal/modal.js: {}
+  dependencies:
+    - core/drupal

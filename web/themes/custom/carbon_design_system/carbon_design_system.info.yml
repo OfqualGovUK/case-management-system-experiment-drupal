@@ -7,6 +7,14 @@ core_version_requirement: ^10.3 || ^11
 sdc: true
 libraries:
   - carbon_design_system/global
+  - carbon_design_system/modal
+libraries-override:
+  autologout/drupal.autologout:
+    js:
+      js/autologout.js: assets/js/autologout.js
+  js_cookie/js-cookie:
+    js:
+      https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js: assets/js/js.cookie.min.js
 regions:
   header: 'Header'
   navigation: 'Primary menu'

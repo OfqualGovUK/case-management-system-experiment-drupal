@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { copyFileSync, mkdirSync } from 'fs';
 
 // Helper to define __dirname equivalent in ES module context
 const __filename = fileURLToPath(import.meta.url);
@@ -72,10 +73,9 @@ export default defineConfig(({ mode }) => {
 
         rollupOptions: {
           input: {
-            // Add all JavaScript files from src/js
+            // Only include files that need to be processed/bundled
             'pagination-handler': path.resolve(__dirname, 'src/js/pagination-handler.js'),
-            // Add more JavaScript files here as needed:
-            // 'other-script': path.resolve(__dirname, 'src/js/other-script.js'),
+            'autologout': path.resolve(__dirname, 'src/js/autologout.js'),
           },
           output: {
             // Output JS files with their name directly (no hash)
@@ -85,6 +85,34 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
+
+      plugins: [
+        {
+          name: 'copy-legacy-scripts',
+          closeBundle() {
+            // Ensure output directory exists
+            const outputDir = path.resolve(__dirname, 'assets/js');
+            mkdirSync(outputDir, { recursive: true });
+
+            // Copy files that should not be processed by Vite
+            const filesToCopy = [
+              {
+                src: path.resolve(__dirname, 'src/js/js.cookie.min.js'),
+                dest: path.resolve(outputDir, 'js.cookie.min.js')
+              }
+            ];
+
+            filesToCopy.forEach(({ src, dest }) => {
+              try {
+                copyFileSync(src, dest);
+                console.log(`Copied ${path.basename(src)} to assets/js/`);
+              } catch (error) {
+                console.error(`Failed to copy ${path.basename(src)}:`, error.message);
+              }
+            });
+          }
+        }
+      ]
     };
   }
 
@@ -96,7 +124,11 @@ export default defineConfig(({ mode }) => {
       preprocessorOptions: {
         scss: {
           // Include node_modules for Carbon Design System SCSS imports
-          includePaths: [path.resolve(__dirname, 'node_modules')]
+          includePaths: [path.resolve(__dirname, 'node_modules')],
+          // Suppress deprecation warnings from Carbon Design System's legacy Sass code
+          silenceDeprecations: ['legacy-js-api', 'import'],
+          // Quieter warnings overall
+          quietDeps: true
         }
       }
     },

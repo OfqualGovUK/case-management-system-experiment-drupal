@@ -1,7 +1,15 @@
-entra_jwt_token.token_status:
-  path: '/admin/entra-jwt-token/status'
+entra_jwt_token.settings:
+  path: '/admin/config/system/entra-jwt-token'
+  defaults:
+    _form: '\Drupal\entra_jwt_token\Form\SettingsForm'
+    _title: 'Entra JWT Token Settings'
+  requirements:
+    _permission: 'administer site configuration'
+
+entra_jwt_token.status:
+  path: '/admin/config/system/entra-jwt-token/status'
   defaults:
     _controller: '\Drupal\entra_jwt_token\Controller\TokenStatusController::status'
-    _title: 'JWT Token Status'
+    _title: 'Token Status'
   requirements:
-    _permission: 'access content'
+    _user_is_logged_in: 'TRUE'
