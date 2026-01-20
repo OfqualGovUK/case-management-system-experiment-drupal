@@ -1,0 +1,44 @@
+{#
+/**
+ * @file
+ * Template for the Carbon Tabs component.
+ *
+ * Available properties:
+ * - tabs: Array of tab items with 'id', 'value', 'target', 'label', and optional 'url'.
+ * - selected_value: Initial selected tab value (optional).
+ * - attributes: HTML attributes for the <cds-tabs> element.
+ *
+ * Example tabs structure:
+ * [
+ *   { id: 'tab-1', value: 'tab1', target: 'panel-1', label: 'View', url: '/node/1' },
+ *   { id: 'tab-2', value: 'tab2', target: 'panel-2', label: 'Edit', url: '/node/1/edit' },
+ *   { id: 'tab-3', value: 'tab3', target: 'panel-3', label: 'Delete', url: '/node/1/delete' }
+ * ]
+ */
+#}
+
+<cds-tabs
+  {% if selected_value is not empty %}
+    value="{{ selected_value }}"
+  {% endif %}
+  {{ attributes }}
+>
+  {% for tab in tabs %}
+    <cds-tab
+      id="{{ tab.id }}"
+      value="{{ tab.value }}"
+      target="{{ tab.target }}"
+      role="tab"
+      {% if tab.disabled %}
+        disabled
+        aria-disabled="true"
+      {% endif %}
+    >
+      {% if tab.url %}
+        <a href="{{ tab.url }}">{{ tab.label }}</a>
+      {% else %}
+        {{ tab.label }}
+      {% endif %}
+    </cds-tab>
+  {% endfor %}
+</cds-tabs>

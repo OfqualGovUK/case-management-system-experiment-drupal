@@ -1,0 +1,52 @@
+{#
+/**
+ * @file
+ * Template for the Carbon Modal component.
+ *
+ * Available properties:
+ * - open: Boolean - Whether modal is open
+ * - size: String - Modal size (xs, sm, md, lg)
+ * - danger: Boolean - Danger/destructive modal
+ * - passive: Boolean - Passive/informational modal
+ * - heading: String - Modal heading
+ * - label: String - Optional label above heading
+ * - attributes: HTML attributes for the modal
+ *
+ * Slots available:
+ * - Default slot: Modal body content
+ * - 'actions' slot: Action buttons
+ *
+ * Example usage:
+ * {{ include('carbon_design_system:modal', {
+ *   heading: 'Confirm action',
+ *   open: false,
+ *   size: 'sm'
+ * }) }}
+ */
+#}
+
+<cds-modal
+  {% if open %}open{% endif %}
+  {% if size %}size="{{ size }}"{% endif %}
+  {% if danger %}danger{% endif %}
+  {% if passive %}passive{% endif %}
+  {{ attributes }}
+>
+  {% if label %}
+    <cds-modal-label>{{ label }}</cds-modal-label>
+  {% endif %}
+  
+  {% if heading %}
+    <cds-modal-heading>{{ heading }}</cds-modal-heading>
+  {% endif %}
+  
+  <cds-modal-body>
+    {# Body content goes here - use include or embed with content #}
+  </cds-modal-body>
+  
+  {% if not passive %}
+    <cds-modal-footer>
+      {# Action buttons go here #}
+    </cds-modal-footer>
+  {% endif %}
+</cds-modal>

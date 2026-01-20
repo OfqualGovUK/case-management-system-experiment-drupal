@@ -1,0 +1,16 @@
+name: Tabs
+status: stable
+description: Implements the Carbon Design System Tabs using Web Components. Tabs organize related content, allowing users to navigate views without leaving the page.
+props:
+  attributes:
+    type: Drupal\Core\Template\Attribute
+    description: HTML attributes for the outermost <cds-tabs> element.
+    required: false
+  value:
+    type: string
+    description: The value attribute of the initially selected tab. Matches the value attribute on the cds-tab element.
+    required: false
+  tabs:
+    type: array
+    description: Array of tab items. Each item should have 'id', 'value', 'target', and 'label'. The tab links to content panel with matching target.
+    required: true

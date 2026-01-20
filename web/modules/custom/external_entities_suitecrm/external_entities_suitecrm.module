@@ -1,0 +1,321 @@
+<?php
+
+/**
+ * @file
+ * Contains external_entities_suitecrm.module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Session\AccountInterface;
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function external_entities_suitecrm_entity_type_alter(array &$entity_types) {
+  if (!isset($entity_types['suitecrm_case'])) {
+    return;
+  }
+
+  try {
+    /** @var \Drupal\Core\Entity\EntityTypeInterface $entity_type */
+    $entity_type = $entity_types['suitecrm_case'];
+    $custom_form_class = 'Drupal\external_entities_suitecrm\Form\SuiteCrmCaseForm';
+
+    // Only set if the class exists (prevents early bootstrap errors).
+    if (!class_exists($custom_form_class)) {
+      return;
+    }
+
+    // Set for standard operations.
+    $entity_type->setFormClass('default', $custom_form_class);
+    $entity_type->setFormClass('edit', $custom_form_class);
+    $entity_type->setFormClass('add', $custom_form_class);
+    $entity_type->setFormClass('create', $custom_form_class);
+
+    // Set for known custom form modes.
+    $known_modes = ['fmm_create', 'fmm_edit_case_description', 'fmm_edit_priority_and_status'];
+    foreach ($known_modes as $mode) {
+      $entity_type->setFormClass($mode, $custom_form_class);
+    }
+  }
+  catch (\Exception $e) {
+    // Silently fail during bootstrap to avoid breaking the site.
+  }
+}
+
+/**
+ * Implements hook_entity_view_alter().
+ */
+function external_entities_suitecrm_entity_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display) {
+  // Only process external entities.
+  if (!$entity->getEntityTypeId() || strpos($entity->getEntityTypeId(), 'suitecrm_') !== 0) {
+    return;
+  }
+
+  // Handle HTML rendering in text fields.
+  $field_definitions = $entity->getFieldDefinitions();
+
+  foreach (Element::children($build) as $field_name) {
+    if (!isset($field_definitions[$field_name]) || !isset($build[$field_name])) {
+      continue;
+    }
+
+    $field_definition = $field_definitions[$field_name];
+    $field_type = $field_definition->getType();
+
+    if (in_array($field_type, ['string', 'string_long', 'text', 'text_long'])) {
+      foreach (Element::children($build[$field_name]) as $delta) {
+        if ($entity->hasField($field_name)) {
+          $field_item = $entity->get($field_name)->get($delta);
+          if ($field_item) {
+            $value = $field_item->value;
+            if ($value && is_string($value) && strip_tags($value) !== $value) {
+              $build[$field_name][$delta] = [
+                '#markup' => $value,
+                '#cache' => $build[$field_name][$delta]['#cache'] ?? [],
+              ];
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function external_entities_suitecrm_entity_update(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() !== 'external_entity_type') {
+    return;
+  }
+
+  $entity_id = $entity->id();
+  if (!$entity_id || strpos($entity_id, 'suitecrm_') !== 0) {
+    return;
+  }
+
+  // Get storage config from POST data.
+  $request = \Drupal::request();
+  $post_data = $request->request->all();
+
+  if (isset($post_data['storages_tab']['config']['storage_clients'][0]['config'])) {
+    $storage_config = $post_data['storages_tab']['config']['storage_clients'][0]['config'];
+
+    $data_aggregator = $entity->get('data_aggregator');
+    if (!empty($data_aggregator)) {
+      $data_aggregator['config']['storage_clients'][0]['config'] = $storage_config;
+      $entity->set('data_aggregator', $data_aggregator);
+
+      if (!isset($entity->isUpdatingFromHook)) {
+        $entity->isUpdatingFromHook = TRUE;
+        $entity->save();
+      }
+    }
+  }
+
+  // Get links from POST.
+  $config = \Drupal::configFactory()->getEditable('external_entities.external_entity_type.' . $entity_id);
+
+  if (isset($post_data['links'])) {
+    $links = $post_data['links'];
+    unset($links['help']);
+    $links = array_filter($links, function ($value) {
+      return !empty($value);
+    });
+
+    if (!empty($links)) {
+      $config->set('links', $links);
+    }
+  }
+
+  // Set persistent.
+  $config->set('persistent', TRUE);
+  $config->save();
+
+  \Drupal::service('router.builder')->rebuild();
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function external_entities_suitecrm_entity_presave(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() !== 'external_entity_type') {
+    return;
+  }
+
+  if ($entity->id() !== 'suitecrm_case') {
+    return;
+  }
+
+  $data_aggregator = $entity->get('data_aggregator');
+
+  if (isset($data_aggregator['config']['storage_clients'][0]['config']) &&
+    empty($data_aggregator['config']['storage_clients'][0]['config'])) {
+
+    $current_entity = \Drupal::entityTypeManager()
+      ->getStorage('external_entity_type')
+      ->loadUnchanged('suitecrm_case');
+
+    if ($current_entity) {
+      $current_data_aggregator = $current_entity->get('data_aggregator');
+
+      if (!empty($current_data_aggregator['config']['storage_clients'][0]['config'])) {
+        $data_aggregator['config']['storage_clients'][0]['config'] =
+          $current_data_aggregator['config']['storage_clients'][0]['config'];
+
+        $entity->set('data_aggregator', $data_aggregator);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for external_entity_type_edit_form.
+ */
+function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  /** @var \Drupal\external_entities\Entity\ExternalEntityType $entity */
+  $entity = $form_state->getFormObject()->getEntity();
+
+  // Only add links UI for suitecrm entities.
+  if (strpos($entity->id(), 'suitecrm_') !== 0) {
+    return;
+  }
+
+  // Get current links.
+  $config = \Drupal::config('external_entities.external_entity_type.' . $entity->id());
+  $current_links = $config->get('links') ?: [];
+
+  // Add form mode configuration section (ONLY for suitecrm_case).
+  if ($entity->id() === 'suitecrm_case') {
+    // Get available form modes for this entity type.
+    $form_modes = \Drupal::service('entity_display.repository')
+      ->getFormModes('suitecrm_case');
+
+    $form_mode_options = ['default' => t('Default')];
+    foreach ($form_modes as $mode_id => $mode_info) {
+      $form_mode_options[$mode_id] = $mode_info['label'];
+    }
+
+    // Add form mode configuration.
+    $form['form_modes'] = [
+      '#type' => 'details',
+      '#title' => t('Form Mode Configuration'),
+      '#open' => TRUE,
+      '#tree' => TRUE,
+      '#weight' => 5,
+    ];
+
+    $form['form_modes']['add'] = [
+      '#type' => 'select',
+      '#title' => t('Add form mode'),
+      '#description' => t('Select which form mode to use when creating new cases via /case/add'),
+      '#options' => $form_mode_options,
+      '#default_value' => $entity->getThirdPartySetting('external_entities_suitecrm', 'add_form_mode', 'default'),
+    ];
+
+    // Add submit handler to save form mode configuration.
+    $form['actions']['submit']['#submit'][] = 'external_entities_suitecrm_form_external_entity_type_submit';
+  }
+
+  // Add links configuration section.
+  $form['links'] = [
+    '#type' => 'details',
+    '#title' => t('Entity Links'),
+    '#description' => t('Configure URL paths for entity operations. Use {@id} as a placeholder for the entity ID.', ['@id' => $entity->id()]),
+    '#open' => FALSE,
+    '#tree' => TRUE,
+    '#weight' => 10,
+  ];
+
+  $form['links']['help'] = [
+    '#markup' => '<p>' . t('Example: <code>/case/{suitecrm_case}</code> for viewing a case, <code>/case/add</code> for creating a new case.') . '</p>',
+  ];
+
+  $link_types = [
+    'canonical' => t('View (canonical)'),
+    'edit-form' => t('Edit form'),
+    'add-form' => t('Add form'),
+    'delete-form' => t('Delete form'),
+    'collection' => t('Collection/List'),
+  ];
+
+  foreach ($link_types as $key => $label) {
+    $form['links'][$key] = [
+      '#type' => 'textfield',
+      '#title' => $label,
+      '#default_value' => $current_links[$key] ?? '',
+      '#placeholder' => $key === 'add-form' ? '/case/add' : '/case/{suitecrm_case}',
+    ];
+  }
+}
+
+/**
+ * Submit handler for external entity type form.
+ */
+function external_entities_suitecrm_form_external_entity_type_submit($form, FormStateInterface $form_state) {
+  /** @var \Drupal\external_entities\Entity\ExternalEntityType $entity */
+  $entity = $form_state->getFormObject()->getEntity();
+
+  if ($entity->id() !== 'suitecrm_case') {
+    return;
+  }
+
+  $form_modes = $form_state->getValue('form_modes');
+
+  if (!empty($form_modes['add'])) {
+    // Just set the third-party setting.
+    $entity->setThirdPartySetting('external_entities_suitecrm', 'add_form_mode', $form_modes['add']);
+  }
+}
+
+/**
+ * Implements hook_openid_connect_post_authorize().
+ */
+function external_entities_suitecrm_openid_connect_post_authorize(AccountInterface $account, array $context) {
+  if (isset($context['plugin_id']) && $context['plugin_id'] === 'entraid') {
+
+    $tokens = $context['tokens'] ?? [];
+
+    if (!empty($tokens)) {
+      $jwt_service = \Drupal::service('entra_jwt_token.token_service');
+
+      if (isset($tokens['id_token'])) {
+        $jwt_service->storeJwtToken($tokens['id_token']);
+      }
+
+      if (isset($tokens['access_token'])) {
+        $jwt_service->storeAccessToken($tokens['access_token']);
+      }
+
+      if (isset($tokens['refresh_token'])) {
+        $jwt_service->storeRefreshToken($tokens['refresh_token']);
+        \Drupal::logger('entra_jwt_token')->info('Refresh token stored for user @uid', [
+          '@uid' => $account->id(),
+        ]);
+      }
+      else {
+        // Line wrapped to stay under 80 characters.
+        \Drupal::logger('entra_jwt_token')->warning(
+          'No refresh token received. Auto-renewal will not work.'
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_user_logout().
+ */
+function external_entities_suitecrm_user_logout(AccountInterface $account) {
+  $jwt_service = \Drupal::service('entra_jwt_token.token_service');
+  $jwt_service->clearTokens();
+
+  \Drupal::logger('entra_jwt_token')->info('Tokens cleared for user @uid on logout', [
+    '@uid' => $account->id(),
+  ]);
+}

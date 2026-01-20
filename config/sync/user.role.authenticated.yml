@@ -6,8 +6,9 @@ dependencies:
     - filter.format.basic_html
   module:
     - external_entities
-    - file
+    - external_entities_suitecrm
     - filter
+    - form_mode_manager
     - search
     - shortcut
     - system
@@ -20,8 +21,13 @@ is_admin: false
 permissions:
   - 'access content'
   - 'access shortcuts'
-  - 'delete own files'
+  - 'create suitecrm_case external entity'
   - 'search content'
+  - 'update suitecrm_case external entity'
+  - 'use suitecrm_case.case_description form mode'
+  - 'use suitecrm_case.case_status_and_priority form mode'
+  - 'use suitecrm_case.create form mode'
+  - 'use suitecrm_case.default form mode'
   - 'use text format basic_html'
   - 'view suitecrm_case external entity'
   - 'view suitecrm_case external entity collection'

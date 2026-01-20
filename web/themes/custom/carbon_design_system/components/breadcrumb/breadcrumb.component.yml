@@ -1,0 +1,17 @@
+name: Breadcrumb
+status: stable
+description: Implements the Carbon Design System Breadcrumb using Web Components. Breadcrumbs show users their current location relative to the information architecture.
+props:
+  attributes:
+    type: Drupal\Core\Template\Attribute
+    description: HTML attributes for the outermost <cds-breadcrumb> element.
+    required: false
+  noTrailingSlash:
+    type: boolean
+    description: Set to true to remove the trailing slash after breadcrumbs. Defaults to false.
+    required: false
+    default: false
+  items:
+    type: array
+    description: Array of breadcrumb items. Each item should have 'label' and optionally 'href'. The last item is typically the current page and should not have href.
+    required: true

@@ -1,0 +1,19 @@
+uuid: 1f20162f-de72-4b05-8b6c-e900a96742a8
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - external_entities
+    - external_entities_suitecrm
+id: suitecrm_case.field_edit_description
+field_name: field_edit_description
+entity_type: suitecrm_case
+type: form_mode_links
+settings: {  }
+module: external_entities_suitecrm
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

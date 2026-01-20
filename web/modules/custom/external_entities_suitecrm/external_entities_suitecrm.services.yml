@@ -1,2 +1,7 @@
 services:
-  # No services needed - storage client is discovered via plugin annotation
+  external_entities_suitecrm.route_subscriber:
+    class: Drupal\external_entities_suitecrm\Routing\RouteSubscriber
+    arguments:
+      - '@config.factory'
+    tags:
+      - { name: event_subscriber }

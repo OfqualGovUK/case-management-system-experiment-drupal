@@ -1,0 +1,35 @@
+{#
+/**
+ * @file
+ * Template for the Carbon Breadcrumb component.
+ *
+ * Available properties:
+ * - items: Array of breadcrumb items with 'label' and optional 'href'.
+ * - noTrailingSlash: Boolean to hide the trailing slash after breadcrumbs.
+ * - attributes: HTML attributes for the <cds-breadcrumb> element.
+ *
+ * Example items structure:
+ * [
+ *   { label: 'Home', href: '/' },
+ *   { label: 'Products', href: '/products' },
+ *   { label: 'Current Page' }  // No href = current page
+ * ]
+ */
+#}
+
+<cds-breadcrumb
+  {% if noTrailingSlash %}
+    no-trailing-slash
+  {% endif %}
+  {{ attributes }}
+>
+  {% for item in items %}
+    <cds-breadcrumb-item>
+      {% if item.href %}
+        <a href="{{ item.href }}">{{ item.label }}</a>
+      {% else %}
+        {{ item.label }}
+      {% endif %}
+    </cds-breadcrumb-item>
+  {% endfor %}
+</cds-breadcrumb>

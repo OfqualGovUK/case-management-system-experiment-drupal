@@ -1,0 +1,11 @@
+uuid: 9450dcd8-d79c-4c53-9cfd-75525ed52fe2
+langcode: en-gb
+status: true
+dependencies:
+  module:
+    - external_entities
+id: suitecrm_case.case_status_and_priority
+label: 'Case Status and Priority'
+description: null
+targetEntityType: suitecrm_case
+cache: true

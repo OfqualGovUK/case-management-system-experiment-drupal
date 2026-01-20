@@ -1,7 +1,23 @@
 services:
+  logger.channel.entra_jwt_token:
+    parent: logger.channel_base
+    arguments: ['entra_jwt_token']
+
   entra_jwt_token.token_service:
     class: Drupal\entra_jwt_token\EntraJwtTokenService
     arguments:
       - '@session'
       - '@tempstore.private'
       - '@logger.factory'
+      - '@settings'
+      - '@http_client'
+
+  entra_jwt_token.token_renewal_subscriber:
+    class: Drupal\entra_jwt_token\EventSubscriber\TokenRenewalSubscriber
+    arguments:
+      - '@current_user'
+      - '@entra_jwt_token.token_service'
+      - '@logger.channel.entra_jwt_token'
+      - '@config.factory'
+    tags:
+      - { name: event_subscriber }

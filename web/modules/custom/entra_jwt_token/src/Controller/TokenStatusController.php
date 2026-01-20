@@ -44,58 +44,109 @@ class TokenStatusController extends ControllerBase {
    *   A render array.
    */
   public function status() {
-    $output = '<h2>Entra JWT Token Status</h2>';
-
     $jwt = $this->tokenService->getJwtToken();
     $access = $this->tokenService->getAccessToken();
 
-    $output .= '<h3>Token Availability:</h3>';
-    $output .= '<p><strong>JWT Token (ID):</strong> ' . ($jwt ? 'Available' : 'Not Available') . '</p>';
-    $output .= '<p><strong>Access Token:</strong> ' . ($access ? 'Available' : 'Not Available') . '</p>';
+    $build = [];
 
+    $build['title'] = [
+      '#markup' => '<h2>' . $this->t('Entra JWT Token Status') . '</h2>',
+    ];
+
+    // Token availability.
+    $build['availability'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Token Availability'),
+    ];
+
+    $jwt_status = $jwt ? $this->t('Available') : $this->t('Not Available');
+    $access_status = $access ? $this->t('Available') : $this->t('Not Available');
+
+    $build['availability']['jwt'] = [
+      '#markup' => '<p><strong>' . $this->t('JWT Token (ID):') . '</strong> ' . $jwt_status . '</p>',
+    ];
+
+    $build['availability']['access'] = [
+      '#markup' => '<p><strong>' . $this->t('Access Token:') . '</strong> ' . $access_status . '</p>',
+    ];
+
+    // Access token details.
     if ($access) {
       $parts = explode('.', $access);
       if (count($parts) === 3) {
         $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), TRUE);
 
-        $output .= '<h3>Access Token Details:</h3>';
-        $output .= '<ul>';
-        $output .= '<li><strong>Scopes (scp):</strong> ' . ($payload['scp'] ?? 'N/A') . '</li>';
+        $build['details'] = [
+          '#type' => 'container',
+          '#title' => $this->t('Access Token Details'),
+        ];
+
+        $details = '<ul>';
+        $details .= '<li><strong>' . $this->t('Scopes (scp):') . '</strong> ' . ($payload['scp'] ?? 'N/A') . '</li>';
 
         if (isset($payload['exp'])) {
           $expires_at = date('d M Y H:i:s', $payload['exp']);
-          $time_until = $payload['exp'] - time();
+          $time_until = $this->tokenService->getTimeUntilExpiry($access);
           $minutes_until = floor($time_until / 60);
 
-          $output .= '<li><strong>Expires:</strong> ' . $expires_at;
-          if ($time_until > 0) {
-            $output .= ' (' . $minutes_until . ' minutes remaining)';
+          $expiry_message = '';
+
+          if ($time_until <= 0) {
+            $expiry_message = $this->t('EXPIRED - Please log in again');
+            $this->messenger()->addError($this->t('Your authentication token has expired. Please log out and log back in.'));
+          }
+          elseif ($time_until < 300) {
+            $expiry_message = $this->t('Expiring soon (@minutes minutes remaining)', ['@minutes' => $minutes_until]);
+            $this->messenger()->addWarning($this->t('Your authentication token will expire in @minutes minutes. Please save your work and refresh your login soon.', ['@minutes' => $minutes_until]));
           }
           else {
-            $output .= ' (EXPIRED)';
+            $expiry_message = $this->t('Valid (@minutes minutes remaining)', ['@minutes' => $minutes_until]);
           }
-          $output .= '</li>';
+
+          $details .= '<li><strong>' . $this->t('Expires:') . '</strong> ' . $expires_at . '</li>';
+          $details .= '<li><strong>' . $this->t('Status:') . '</strong>' . $expiry_message . '</li>';
         }
 
-        $output .= '</ul>';
+        $details .= '</ul>';
 
         // Check audience.
         $expected_audience = 'api://' . getenv('OPENID_CLIENT_ID');
         if (isset($payload['aud']) && $payload['aud'] === $expected_audience) {
-          $output .= '<strong>Correct Audience</strong> Token is valid for SuiteCRM API.';
+          $details .= '<p><strong>' . $this->t('Correct Audience') . '</strong> ' . $this->t('Token is valid for SuiteCRM API.') . '</p>';
         }
         else {
-          $output .= '<strong>Wrong Audience</strong> Token audience does not match SuiteCRM API.';
+          $details .= '<p><strong>' . $this->t('Wrong Audience') . '</strong> ' . $this->t('Token audience does not match SuiteCRM API.') . '</p>';
+          $this->messenger()->addError($this->t('Token audience mismatch. Expected: @expected, Got: @actual', [
+            '@expected' => $expected_audience,
+            '@actual' => $payload['aud'] ?? 'N/A',
+          ]));
         }
+
+        $build['details']['content'] = [
+          '#markup' => $details,
+          '#attached' => [
+            'library' => ['system/admin'],
+          ],
+        ];
       }
     }
 
+    // No tokens available.
     if (!$jwt && !$access) {
-      $output .= '<p><strong>Note:</strong> Tokens are only available when logged in via Entra SSO.</p>';
-      $output .= '<p>Please log out and log back in using your Entra ID credentials to obtain tokens.</p>';
+      $this->messenger()->addWarning($this->t('No authentication tokens found. You may need to log in via Entra SSO.'));
+
+      $build['note'] = [
+        '#type' => 'container',
+        '#title' => $this->t('How to Obtain Tokens'),
+      ];
+
+      $build['note']['content'] = [
+        '#markup' => '<p>' . $this->t('Tokens are only available when logged in via Entra SSO.') . '</p>' .
+        '<p>' . $this->t('Please log out and log back in using your Entra ID credentials to obtain tokens.') . '</p>',
+      ];
     }
 
-    return ['#markup' => $output];
+    return $build;
   }
 
 }

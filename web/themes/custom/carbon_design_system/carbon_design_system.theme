@@ -33,9 +33,7 @@ function carbon_design_system_preprocess_input(&$variables) {
     $element = $variables['element'];
 
     if (!empty($element['#errors'])) {
-
       $variables['errors'] = $element['#errors'];
-
     }
   }
 }
@@ -139,11 +137,17 @@ function carbon_design_system_get_menu_links(string $menu_name): array {
 
   // Iterate over the flat menu tree to build the SDC link array.
   foreach ($tree as $item) {
+    // Skip if access is denied.
     if (!$item->access->isAllowed()) {
       continue;
     }
 
+    // Skip if the menu link is disabled.
     $link = $item->link;
+    if (!$link->isEnabled()) {
+      continue;
+    }
+
     $url = $link->getUrlObject();
     $options = $url->getOptions();
 
@@ -159,4 +163,46 @@ function carbon_design_system_get_menu_links(string $menu_name): array {
   }
 
   return $links;
+}
+
+/**
+ * Implements hook_preprocess_pager().
+ *
+ * Adds total_items and items_per_page variables for Carbon pagination.
+ */
+function carbon_design_system_preprocess_pager(&$variables) {
+  // Get pager info from the pager manager.
+  /** @var \Drupal\Core\Pager\PagerManagerInterface $pager_manager */
+  $pager_manager = \Drupal::service('pager.manager');
+
+  // Get the pager element (usually 0 for the first pager on the page).
+  $element = $variables['pager']['#element'] ?? 0;
+  $pager = $pager_manager->getPager($element);
+
+  if ($pager) {
+    // Total number of items across all pages.
+    $variables['total_items'] = $pager->getTotalItems();
+
+    // Items per page.
+    $variables['items_per_page'] = $pager->getLimit();
+
+    // Current page (0-indexed).
+    $variables['current'] = $pager->getCurrentPage();
+
+    // Calculate total pages.
+    $variables['total_pages'] = $pager->getTotalPages();
+
+    // Optional: Add page size options.
+    // $variables['page_sizes'] = [10, 20, 50, 100];.
+  }
+  else {
+    // Fallback values if pager isn't found.
+    $variables['total_items'] = 0;
+    $variables['items_per_page'] = 10;
+    $variables['current'] = 0;
+    $variables['total_pages'] = 0;
+  }
+
+  // Attach the pagination JavaScript library.
+  $variables['#attached']['library'][] = 'carbon_design_system/pagination';
 }

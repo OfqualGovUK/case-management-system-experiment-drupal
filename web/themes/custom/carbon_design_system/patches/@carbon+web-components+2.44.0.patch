@@ -1,0 +1,17 @@
+diff --git a/node_modules/@carbon/web-components/es/components/tabs/tab.js b/node_modules/@carbon/web-components/es/components/tabs/tab.js
+index d69d97c..80be284 100644
+--- a/node_modules/@carbon/web-components/es/components/tabs/tab.js
++++ b/node_modules/@carbon/web-components/es/components/tabs/tab.js
+@@ -61,11 +61,10 @@ let CDSTab = class CDSTab extends CDSContentSwitcherItem {
+         return html `
+       <a
+         class="${prefix}--tabs__nav-link"
+-        role="tab"
+         aria-label="${tabTitle}"
+         tabindex="${selected ? 0 : -1}"
+         ?disabled="${disabled}"
+-        aria-selected="${Boolean(selected)}">
++        >
+         <slot @slotchange="${handleSlotChange}"></slot>
+       </a>
+     `;
