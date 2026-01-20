@@ -24,7 +24,7 @@ class FormModeLinksWidget extends WidgetBase {
    */
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
     // This field doesn't need a widget on the entity edit form
-    // The configuration is done at the field settings level
+    // The configuration is done at the field settings level.
     $element['value'] = [
       '#type' => 'value',
       '#value' => '',

@@ -53,7 +53,7 @@ class TokenStatusController extends ControllerBase {
       '#markup' => '<h2>' . $this->t('Entra JWT Token Status') . '</h2>',
     ];
 
-    // Token availability
+    // Token availability.
     $build['availability'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Token Availability'),
@@ -70,7 +70,7 @@ class TokenStatusController extends ControllerBase {
       '#markup' => '<p><strong>' . $this->t('Access Token:') . '</strong> ' . $access_status . '</p>',
     ];
 
-    // Access token details
+    // Access token details.
     if ($access) {
       $parts = explode('.', $access);
       if (count($parts) === 3) {
@@ -109,7 +109,7 @@ class TokenStatusController extends ControllerBase {
 
         $details .= '</ul>';
 
-        // Check audience
+        // Check audience.
         $expected_audience = 'api://' . getenv('OPENID_CLIENT_ID');
         if (isset($payload['aud']) && $payload['aud'] === $expected_audience) {
           $details .= '<p><strong>' . $this->t('Correct Audience') . '</strong> ' . $this->t('Token is valid for SuiteCRM API.') . '</p>';
@@ -131,7 +131,7 @@ class TokenStatusController extends ControllerBase {
       }
     }
 
-    // No tokens available
+    // No tokens available.
     if (!$jwt && !$access) {
       $this->messenger()->addWarning($this->t('No authentication tokens found. You may need to log in via Entra SSO.'));
 
@@ -142,7 +142,7 @@ class TokenStatusController extends ControllerBase {
 
       $build['note']['content'] = [
         '#markup' => '<p>' . $this->t('Tokens are only available when logged in via Entra SSO.') . '</p>' .
-                     '<p>' . $this->t('Please log out and log back in using your Entra ID credentials to obtain tokens.') . '</p>',
+        '<p>' . $this->t('Please log out and log back in using your Entra ID credentials to obtain tokens.') . '</p>',
       ];
     }
 

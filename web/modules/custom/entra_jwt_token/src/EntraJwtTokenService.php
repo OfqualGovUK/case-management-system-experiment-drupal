@@ -5,6 +5,8 @@ namespace Drupal\entra_jwt_token;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Site\Settings;
+use GuzzleHttp\ClientInterface;
 
 /**
  * Service for managing Entra JWT tokens.
@@ -33,12 +35,45 @@ class EntraJwtTokenService {
   protected $logger;
 
   /**
-   * Constructs an EntraJwtTokenService object.
+   * The settings service.
+   *
+   * @var \Drupal\Core\Site\Settings
    */
-  public function __construct(SessionInterface $session, PrivateTempStoreFactory $temp_store_factory, LoggerChannelFactoryInterface $logger_factory) {
+  protected $settings;
+
+  /**
+   * The HTTP client.
+   *
+   * @var \GuzzleHttp\ClientInterface
+   */
+  protected $httpClient;
+
+  /**
+   * Constructs an EntraJwtTokenService object.
+   *
+   * @param \Symfony\Component\HttpFoundation\Session\SessionInterface $session
+   *   The session.
+   * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $temp_store_factory
+   *   The temp store factory.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
+   *   The logger factory.
+   * @param \Drupal\Core\Site\Settings $settings
+   *   The Drupal settings.
+   * @param \GuzzleHttp\ClientInterface $http_client
+   *   The Guzzle HTTP client.
+   */
+  public function __construct(
+    SessionInterface $session,
+    PrivateTempStoreFactory $temp_store_factory,
+    LoggerChannelFactoryInterface $logger_factory,
+    Settings $settings,
+    ClientInterface $http_client,
+  ) {
     $this->session = $session;
     $this->tempStore = $temp_store_factory->get('entra_jwt_token');
     $this->logger = $logger_factory->get('entra_jwt_token');
+    $this->settings = $settings;
+    $this->httpClient = $http_client;
   }
 
   /**
@@ -114,7 +149,7 @@ class EntraJwtTokenService {
           $current_time = time();
           $time_until_expiry = $expires_at - $current_time;
 
-          // Return true if expiring within 5 minutes (300 seconds)
+          // Return true if expiring within 5 minutes (300 seconds).
           return $time_until_expiry < 300;
         }
       }
@@ -138,7 +173,7 @@ class EntraJwtTokenService {
           $expires_at = $payload['exp'];
           $current_time = time();
 
-          // Token is expired if current time is past expiry
+          // Token is expired if current time is past expiry.
           return $current_time >= $expires_at;
         }
       }
@@ -147,7 +182,8 @@ class EntraJwtTokenService {
       $this->logger->error('Failed to check token expiry: @message', ['@message' => $e->getMessage()]);
     }
 
-    return TRUE; // Assume expired if we can't parse it
+    // Assume expired if we can't parse it.
+    return TRUE;
   }
 
   /**
@@ -191,7 +227,7 @@ class EntraJwtTokenService {
    *   TRUE if renewal successful, FALSE otherwise.
    */
   public function renewToken() {
-    // Get refresh token from session/storage
+    // Get refresh token from session/storage.
     $refresh_token = $this->session->get('entra_refresh_token');
     if (!$refresh_token) {
       $refresh_token = $this->tempStore->get('refresh_token');
@@ -203,19 +239,18 @@ class EntraJwtTokenService {
     }
 
     try {
-      // Get configuration from settings
-      $settings = \Drupal::service('settings');
-      $client_id = $settings->get('OPENID_CLIENT_ID');
-      $client_secret = $settings->get('OPENID_CLIENT_SECRET');
-      $token_endpoint = $settings->get('TOKEN_ENDPOINT');
+      // Get configuration from injected settings service.
+      $client_id = $this->settings->get('OPENID_CLIENT_ID');
+      $client_secret = $this->settings->get('OPENID_CLIENT_SECRET');
+      $token_endpoint = $this->settings->get('TOKEN_ENDPOINT');
 
       if (!$client_id || !$client_secret || !$token_endpoint) {
         $this->logger->error('Cannot renew token: Missing OPENID_CLIENT_ID, OPENID_CLIENT_SECRET, or TOKEN_ENDPOINT in settings.php');
         return FALSE;
       }
 
-      $http_client = \Drupal::httpClient();
-      $response = $http_client->post($token_endpoint, [
+      // Use injected httpClient.
+      $response = $this->httpClient->post($token_endpoint, [
         'form_params' => [
           'client_id' => $client_id,
           'client_secret' => $client_secret,
@@ -228,11 +263,11 @@ class EntraJwtTokenService {
       $data = json_decode($response->getBody()->getContents(), TRUE);
 
       if (isset($data['id_token']) && isset($data['access_token'])) {
-        // Store new tokens
+        // Store new tokens.
         $this->storeJwtToken($data['id_token']);
         $this->storeAccessToken($data['access_token']);
 
-        // Store new refresh token if provided
+        // Store new refresh token if provided.
         if (isset($data['refresh_token'])) {
           $this->storeRefreshToken($data['refresh_token']);
         }

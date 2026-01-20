@@ -24,7 +24,7 @@ class FormModeLinksItem extends FieldItemBase {
    * {@inheritdoc}
    */
   public static function propertyDefinitions(FieldStorageDefinitionInterface $field_definition) {
-    // We don't actually store any data, but we need at least one property
+    // We don't actually store any data, but we need at least one property.
     $properties['value'] = DataDefinition::create('string')
       ->setLabel(t('Value'))
       ->setRequired(FALSE);
@@ -51,7 +51,7 @@ class FormModeLinksItem extends FieldItemBase {
    * {@inheritdoc}
    */
   public function isEmpty() {
-    // Field is never empty - it always renders if user has permission
+    // Field is never empty - it always renders if user has permission.
     return FALSE;
   }
 

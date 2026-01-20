@@ -7,7 +7,6 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Session\AccountInterface;
@@ -25,25 +24,25 @@ function external_entities_suitecrm_entity_type_alter(array &$entity_types) {
     $entity_type = $entity_types['suitecrm_case'];
     $custom_form_class = 'Drupal\external_entities_suitecrm\Form\SuiteCrmCaseForm';
 
-    // Only set if the class exists (prevents early bootstrap errors)
+    // Only set if the class exists (prevents early bootstrap errors).
     if (!class_exists($custom_form_class)) {
       return;
     }
 
-    // Set for standard operations
+    // Set for standard operations.
     $entity_type->setFormClass('default', $custom_form_class);
     $entity_type->setFormClass('edit', $custom_form_class);
     $entity_type->setFormClass('add', $custom_form_class);
     $entity_type->setFormClass('create', $custom_form_class);
 
-    // Set for known custom form modes
+    // Set for known custom form modes.
     $known_modes = ['fmm_create', 'fmm_edit_case_description', 'fmm_edit_priority_and_status'];
     foreach ($known_modes as $mode) {
       $entity_type->setFormClass($mode, $custom_form_class);
     }
   }
   catch (\Exception $e) {
-    // Silently fail during bootstrap to avoid breaking the site
+    // Silently fail during bootstrap to avoid breaking the site.
   }
 }
 
@@ -51,12 +50,12 @@ function external_entities_suitecrm_entity_type_alter(array &$entity_types) {
  * Implements hook_entity_view_alter().
  */
 function external_entities_suitecrm_entity_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display) {
-  // Only process external entities
+  // Only process external entities.
   if (!$entity->getEntityTypeId() || strpos($entity->getEntityTypeId(), 'suitecrm_') !== 0) {
     return;
   }
 
-  // Handle HTML rendering in text fields
+  // Handle HTML rendering in text fields.
   $field_definitions = $entity->getFieldDefinitions();
 
   foreach (Element::children($build) as $field_name) {
@@ -99,7 +98,7 @@ function external_entities_suitecrm_entity_update(EntityInterface $entity) {
     return;
   }
 
-  // Get storage config from POST data
+  // Get storage config from POST data.
   $request = \Drupal::request();
   $post_data = $request->request->all();
 
@@ -118,13 +117,13 @@ function external_entities_suitecrm_entity_update(EntityInterface $entity) {
     }
   }
 
-  // Get links from POST
+  // Get links from POST.
   $config = \Drupal::configFactory()->getEditable('external_entities.external_entity_type.' . $entity_id);
 
   if (isset($post_data['links'])) {
     $links = $post_data['links'];
     unset($links['help']);
-    $links = array_filter($links, function($value) {
+    $links = array_filter($links, function ($value) {
       return !empty($value);
     });
 
@@ -133,7 +132,7 @@ function external_entities_suitecrm_entity_update(EntityInterface $entity) {
     }
   }
 
-  // Set persistent
+  // Set persistent.
   $config->set('persistent', TRUE);
   $config->save();
 
@@ -182,18 +181,18 @@ function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$
   /** @var \Drupal\external_entities\Entity\ExternalEntityType $entity */
   $entity = $form_state->getFormObject()->getEntity();
 
-  // Only add links UI for suitecrm entities
+  // Only add links UI for suitecrm entities.
   if (strpos($entity->id(), 'suitecrm_') !== 0) {
     return;
   }
 
-  // Get current links
+  // Get current links.
   $config = \Drupal::config('external_entities.external_entity_type.' . $entity->id());
   $current_links = $config->get('links') ?: [];
 
-  // Add form mode configuration section (ONLY for suitecrm_case)
+  // Add form mode configuration section (ONLY for suitecrm_case).
   if ($entity->id() === 'suitecrm_case') {
-    // Get available form modes for this entity type
+    // Get available form modes for this entity type.
     $form_modes = \Drupal::service('entity_display.repository')
       ->getFormModes('suitecrm_case');
 
@@ -202,7 +201,7 @@ function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$
       $form_mode_options[$mode_id] = $mode_info['label'];
     }
 
-    // Add form mode configuration
+    // Add form mode configuration.
     $form['form_modes'] = [
       '#type' => 'details',
       '#title' => t('Form Mode Configuration'),
@@ -219,15 +218,15 @@ function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$
       '#default_value' => $entity->getThirdPartySetting('external_entities_suitecrm', 'add_form_mode', 'default'),
     ];
 
-    // Add submit handler to save form mode configuration
+    // Add submit handler to save form mode configuration.
     $form['actions']['submit']['#submit'][] = 'external_entities_suitecrm_form_external_entity_type_submit';
   }
 
-  // Add links configuration section
+  // Add links configuration section.
   $form['links'] = [
     '#type' => 'details',
     '#title' => t('Entity Links'),
-    '#description' => t('Configure URL paths for entity operations. Use {' . $entity->id() . '} as a placeholder for the entity ID.'),
+    '#description' => t('Configure URL paths for entity operations. Use {@id} as a placeholder for the entity ID.', ['@id' => $entity->id()]),
     '#open' => FALSE,
     '#tree' => TRUE,
     '#weight' => 10,
@@ -253,8 +252,6 @@ function external_entities_suitecrm_form_external_entity_type_edit_form_alter(&$
       '#placeholder' => $key === 'add-form' ? '/case/add' : '/case/{suitecrm_case}',
     ];
   }
-
-  // The entity_update hook will handle saving these
 }
 
 /**
@@ -271,37 +268,30 @@ function external_entities_suitecrm_form_external_entity_type_submit($form, Form
   $form_modes = $form_state->getValue('form_modes');
 
   if (!empty($form_modes['add'])) {
-    // Just set the third-party setting the forms own submit handler will save the entity
+    // Just set the third-party setting.
     $entity->setThirdPartySetting('external_entities_suitecrm', 'add_form_mode', $form_modes['add']);
   }
 }
 
 /**
  * Implements hook_openid_connect_post_authorize().
- *
- * Store the refresh token after successful OpenID Connect authorization.
  */
 function external_entities_suitecrm_openid_connect_post_authorize(AccountInterface $account, array $context) {
-  // Only process for Entra ID client
   if (isset($context['plugin_id']) && $context['plugin_id'] === 'entraid') {
 
-    // Get tokens from context
     $tokens = $context['tokens'] ?? [];
 
     if (!empty($tokens)) {
       $jwt_service = \Drupal::service('entra_jwt_token.token_service');
 
-      // Store ID token (JWT)
       if (isset($tokens['id_token'])) {
         $jwt_service->storeJwtToken($tokens['id_token']);
       }
 
-      // Store access token
       if (isset($tokens['access_token'])) {
         $jwt_service->storeAccessToken($tokens['access_token']);
       }
 
-      // Store refresh token - CRITICAL for auto-renewal!
       if (isset($tokens['refresh_token'])) {
         $jwt_service->storeRefreshToken($tokens['refresh_token']);
         \Drupal::logger('entra_jwt_token')->info('Refresh token stored for user @uid', [
@@ -309,7 +299,10 @@ function external_entities_suitecrm_openid_connect_post_authorize(AccountInterfa
         ]);
       }
       else {
-        \Drupal::logger('entra_jwt_token')->warning('No refresh token received. Auto-renewal will not work. Did you request offline_access scope?');
+        // Line wrapped to stay under 80 characters.
+        \Drupal::logger('entra_jwt_token')->warning(
+          'No refresh token received. Auto-renewal will not work.'
+        );
       }
     }
   }
@@ -317,8 +310,6 @@ function external_entities_suitecrm_openid_connect_post_authorize(AccountInterfa
 
 /**
  * Implements hook_user_logout().
- *
- * Clear all tokens on logout.
  */
 function external_entities_suitecrm_user_logout(AccountInterface $account) {
   $jwt_service = \Drupal::service('entra_jwt_token.token_service');

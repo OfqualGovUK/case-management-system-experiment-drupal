@@ -9,6 +9,8 @@ services:
       - '@session'
       - '@tempstore.private'
       - '@logger.factory'
+      - '@settings'
+      - '@http_client'
 
   entra_jwt_token.token_renewal_subscriber:
     class: Drupal\entra_jwt_token\EventSubscriber\TokenRenewalSubscriber
@@ -16,5 +18,6 @@ services:
       - '@current_user'
       - '@entra_jwt_token.token_service'
       - '@logger.channel.entra_jwt_token'
+      - '@config.factory'
     tags:
       - { name: event_subscriber }

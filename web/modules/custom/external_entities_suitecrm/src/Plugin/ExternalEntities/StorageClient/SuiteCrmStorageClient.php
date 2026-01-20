@@ -2,10 +2,12 @@
 
 namespace Drupal\external_entities_suitecrm\Plugin\ExternalEntities\StorageClient;
 
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Exception\ClientException;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
@@ -20,8 +22,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * SuiteCRM REST storage client with Entra authentication.
  *
  * @StorageClient(
- *   id = "suitecrm_rest",
- *   label = @Translation("SuiteCRM REST (Entra Authenticated)")
+ * id = "suitecrm_rest",
+ * label = @Translation("SuiteCRM REST (Entra Authenticated)")
  * )
  */
 class SuiteCrmStorageClient extends StorageClientBase {
@@ -88,8 +90,8 @@ class SuiteCrmStorageClient extends StorageClientBase {
    */
   public function __construct(
     array $configuration,
-          $plugin_id,
-          $plugin_definition,
+    $plugin_id,
+    $plugin_definition,
     TranslationInterface $string_translation,
     LoggerChannelFactoryInterface $logger_factory,
     EntityTypeManagerInterface $entity_type_manager,
@@ -234,7 +236,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // Validate endpoints are URLs
+    // Validate endpoints are URLs.
     $list_endpoint = $form_state->getValue('list_endpoint');
     $push_endpoint = $form_state->getValue('push_endpoint');
 
@@ -251,10 +253,10 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // Call parent first
+    // Call parent first.
     parent::submitConfigurationForm($form, $form_state);
 
-    // Save configuration from form values
+    // Save configuration from form values.
     $this->configuration['list_endpoint'] = $form_state->getValue('list_endpoint') ?: '';
     $this->configuration['push_endpoint'] = $form_state->getValue('push_endpoint') ?: '';
     $this->configuration['single_endpoint'] = $form_state->getValue('single_endpoint') ?: '';
@@ -287,9 +289,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
     $apim_key = getenv('APIM_SUBSCRIPTION_KEY');
     if ($apim_key) {
       $headers['Ocp-Apim-Subscription-Key'] = $apim_key;
-    }
-    else {
-      $apim_message = 'APIM_SUBSCRIPTION_KEY environment variable not set';
     }
 
     return $headers;
@@ -335,31 +334,28 @@ class SuiteCrmStorageClient extends StorageClientBase {
 
       return $data;
     }
-    catch (\GuzzleHttp\Exception\ClientException $e) {
+    catch (ClientException $e) {
       $status_code = $e->getResponse()->getStatusCode();
       $response_body = (string) $e->getResponse()->getBody();
 
-      // Log the error
+      // Log the error.
       $this->logger->error('SuiteCRM API ClientException (@code): @message. Response: @response', [
         '@code' => $status_code,
         '@message' => $e->getMessage(),
         '@response' => $response_body,
       ]);
 
-      // Handle specific error codes
+      // Handle specific error codes.
       if ($status_code === 401) {
-        // Check if JWT token is expiring/expired
-        $jwt_service = \Drupal::service('entra_jwt_token.token_service');
-        $token = $jwt_service->getJwtToken();
+        // Use injected token service.
+        $token = $this->tokenService->getJwtToken();
 
         if ($token) {
-          // Token exists but API says it's invalid - likely expired
-          $this->messenger->addError($this->t('Your authentication token has expired. Please <a href="@login">log in again</a>.', [
+          $this->messenger->addError($this->t('Authentication token expired. Please <a href="@login">log in again</a>.', [
             '@login' => '/user/login',
           ]));
         }
         else {
-          // No token at all
           $this->messenger->addError($this->t('Authentication required. Please <a href="@login">log in</a>.', [
             '@login' => '/user/login',
           ]));
@@ -368,7 +364,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
         return [];
       }
       elseif ($status_code === 403) {
-        $this->messenger->addError($this->t('Access denied. You do not have permission to perform this action.'));
+        $this->messenger->addError($this->t('Access denied. No permission for this action.'));
         return [];
       }
       elseif ($status_code === 404) {
@@ -376,7 +372,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
         return [];
       }
       elseif ($status_code === 422) {
-        // Validation error - try to extract message
         $error_data = json_decode($response_body, TRUE);
         if (isset($error_data['message'])) {
           $this->messenger->addError($this->t('Validation error: @message', ['@message' => $error_data['message']]));
@@ -387,43 +382,31 @@ class SuiteCrmStorageClient extends StorageClientBase {
         return [];
       }
       else {
-        // Generic client error (4xx)
-        $this->messenger->addError($this->t('An error occurred while communicating with SuiteCRM (Error @code). Please try again or contact support.', [
+        $this->messenger->addError($this->t('SuiteCRM Communication Error (@code).', [
           '@code' => $status_code,
         ]));
         return [];
       }
     }
-    catch (\GuzzleHttp\Exception\ServerException $e) {
+    catch (ServerException $e) {
       $status_code = $e->getResponse()->getStatusCode();
-
       $this->logger->error('SuiteCRM API ServerException (@code): @message', [
         '@code' => $status_code,
         '@message' => $e->getMessage(),
       ]);
-
-      $this->messenger->addError($this->t('SuiteCRM is currently experiencing issues (Error @code). Please try again later.', [
+      $this->messenger->addError($this->t('SuiteCRM issues (Error @code). Please try later.', [
         '@code' => $status_code,
       ]));
-
       return [];
     }
-    catch (\GuzzleHttp\Exception\ConnectException $e) {
-      $this->logger->error('SuiteCRM API ConnectException: @message', [
-        '@message' => $e->getMessage(),
-      ]);
-
-      $this->messenger->addError($this->t('Unable to connect to SuiteCRM. Please check your network connection or try again later.'));
-
+    catch (ConnectException $e) {
+      $this->logger->error('SuiteCRM API ConnectException: @message', ['@message' => $e->getMessage()]);
+      $this->messenger->addError($this->t('Unable to connect to SuiteCRM. Check network.'));
       return [];
     }
     catch (\Exception $e) {
-      $this->logger->error('SuiteCRM API unexpected error: @message', [
-        '@message' => $e->getMessage(),
-      ]);
-
-      $this->messenger->addError($this->t('An unexpected error occurred. Please try again or contact support.'));
-
+      $this->logger->error('SuiteCRM API unexpected error: @message', ['@message' => $e->getMessage()]);
+      $this->messenger->addError($this->t('An unexpected error occurred.'));
       return [];
     }
   }
@@ -450,14 +433,12 @@ class SuiteCrmStorageClient extends StorageClientBase {
       // Filter out parameters that SuiteCRM API doesn't support.
       $filtered_params = [];
       foreach ($parameters as $key => $value) {
-        // Skip offset, limit, and sort parameters.
         if (!in_array($key, ['offset', 'limit']) && strpos($key, 'sort') !== 0) {
           $filtered_params[$key] = $value;
         }
       }
 
       $params = array_merge($config_params, $filtered_params);
-
       $result = $this->makeRequest('GET', $endpoint, $params);
 
       // Transform JSON:API format to flat structure.
@@ -465,61 +446,51 @@ class SuiteCrmStorageClient extends StorageClientBase {
       if (is_array($result)) {
         foreach ($result as $item) {
           if (isset($item['attributes']) && isset($item['id'])) {
-            // Store BOTH case_number AND UUID - CRITICAL for updates!
             $flat = [
               'id' => $item['attributes']['case_number'] ?? $item['id'],
               'uuid' => $item['id'],
             ];
 
-            // Add attributes, decoding HTML entities for text fields
             foreach ($item['attributes'] as $key => $value) {
               if (is_string($value)) {
-                // Decode HTML entities (e.g., &lt;p&gt; becomes <p>)
                 $flat[$key] = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-              } else {
+              }
+              else {
                 $flat[$key] = $value;
               }
             }
 
-            // Use case_number as key so load() can find it.
             $key = $item['attributes']['case_number'] ?? $item['id'];
             $transformed[$key] = $flat;
           }
         }
-
-        // Cache for 5 minutes (300 seconds).
         $this->cacheBackend->set($cache_key, $transformed, time() + 300);
       }
     }
 
     $result = $transformed;
 
-    // Apply sorting in PHP since API doesn't support it.
+    // Apply sorting in PHP.
     if (!empty($sorts)) {
       $sort_field = array_key_first($sorts);
       $sort_direction = $sorts[$sort_field];
-
-      // Get field definitions to determine data type
       $field_manager = \Drupal::service('entity_field.manager');
       $field_definitions = $field_manager->getFieldDefinitions('suitecrm_case', 'suitecrm_case');
 
-      // Determine if we should do numeric comparison
       $is_numeric_field = FALSE;
       if (isset($field_definitions[$sort_field])) {
         $field_type = $field_definitions[$sort_field]->getType();
-        // Numeric field types
         $is_numeric_field = in_array($field_type, ['integer', 'decimal', 'float', 'number']);
       }
 
-      // Use uasort to preserve keys (case_number)
       uasort($result, function ($a, $b) use ($sort_field, $sort_direction, $is_numeric_field) {
         $a_val = $a[$sort_field] ?? '';
         $b_val = $b[$sort_field] ?? '';
 
-        // Use numeric comparison if field type is numeric
         if ($is_numeric_field && is_numeric($a_val) && is_numeric($b_val)) {
-          $cmp = (float)$a_val <=> (float)$b_val;
-        } else {
+          $cmp = (float) $a_val <=> (float) $b_val;
+        }
+        else {
           $cmp = $a_val <=> $b_val;
         }
 
@@ -527,7 +498,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
       });
     }
 
-    // Apply pagination in PHP.
     if ($start !== NULL || $length !== NULL) {
       $start = $start ?? 0;
       $length = $length ?? count($result);
@@ -548,7 +518,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function countQuery(array $parameters = []): int {
-    // Get all entities without pagination to count them
     $all_entities = $this->query($parameters);
     return count($all_entities);
   }
@@ -568,16 +537,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
     foreach ($parameters as $filter) {
       $field = $filter['field'] ?? '';
       $value = $filter['value'] ?? '';
-      $operator = $filter['operator'] ?? '=';
-
-      switch ($operator) {
-        case '=':
-          $translated['filter[' . $field . '][eq]'] = $value;
-          break;
-
-        default:
-          $translated['filter[' . $field . '][eq]'] = $value;
-      }
+      $translated['filter[' . $field . '][eq]'] = $value;
     }
     return $translated;
   }
@@ -586,10 +546,7 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function load(string|int $id): ?array {
-    // Load from full dataset (without pagination)
     $all_cases = $this->query();
-
-    // Return the case by its ID (case_number key)
     return $all_cases[$id] ?? NULL;
   }
 
@@ -597,22 +554,16 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function loadMultiple(?array $ids = NULL): array {
-    // Always fetch all cases in one API call to avoid rate limiting.
     $all_cases = $this->query();
-
-    // If no specific IDs requested, return all.
     if ($ids === NULL) {
       return $all_cases;
     }
-
-    // Filter to only requested IDs.
     $filtered = [];
     foreach ($ids as $id) {
       if (isset($all_cases[$id])) {
         $filtered[$id] = $all_cases[$id];
       }
     }
-
     return $filtered;
   }
 
@@ -620,49 +571,27 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * {@inheritdoc}
    */
   public function save(ExternalEntityInterface $entity): int {
-    $id = $entity->id();
     $is_new = $entity->isNew();
 
     try {
-      // Prepare the data to send to the API.
       $data = $this->prepareEntityData($entity);
-
-      // The module type goes in the JSON body, NOT in the URL!
       $endpoint = $this->configuration['push_endpoint'] ?? '';
-
-      if ($is_new) {
-        $method = 'POST';
-      }
-      else {
-        $method = 'PATCH';
-      }
+      $method = $is_new ? 'POST' : 'PATCH';
 
       $result = $this->makeRequest($method, $endpoint, [], $data);
 
-      // For CREATE operations, populate entity with response data
-      // This prevents External Entities from throwing warnings about missing fields
       if ($is_new && !empty($result) && is_array($result)) {
-        // Extract case_number from the response if available
         if (isset($result['attributes']['case_number'])) {
           $entity->set('field_case_number', $result['attributes']['case_number']);
         }
-        // Set the ID if returned
         if (isset($result['id'])) {
           $entity->set('id', $result['attributes']['case_number'] ?? $result['id']);
         }
-        // Mark entity as no longer new to prevent re-save attempts
         $entity->enforceIsNew(FALSE);
       }
 
-      // Clear cache after save (regardless of response)
       $this->clearCache();
-
-      if (!empty($result)) {
-        return $is_new ? SAVED_NEW : SAVED_UPDATED;
-      }
-      else {
-        return SAVED_UPDATED;
-      }
+      return $is_new ? SAVED_NEW : SAVED_UPDATED;
     }
     catch (\Exception $e) {
       throw $e;
@@ -676,16 +605,13 @@ class SuiteCrmStorageClient extends StorageClientBase {
     $id = $entity->id();
 
     try {
-      // For DELETE, we also use the push_endpoint with the data in body
       $endpoint = $this->configuration['push_endpoint'] ?? '';
-
       $entity_data = $this->load($id);
       if (!isset($entity_data['uuid'])) {
         throw new \Exception('Cannot delete entity: UUID not found for ID ' . $id);
       }
 
       $api_type = $this->configuration['api_type'] ?? 'Cases';
-
       $data = [
         'data' => [
           'type' => $api_type,
@@ -694,8 +620,6 @@ class SuiteCrmStorageClient extends StorageClientBase {
       ];
 
       $this->makeRequest('DELETE', $endpoint, [], $data);
-
-      // Clear cache when deleting.
       $this->clearCache();
     }
     catch (\Exception $e) {
@@ -705,124 +629,63 @@ class SuiteCrmStorageClient extends StorageClientBase {
 
   /**
    * Prepares entity data for API submission.
-   *
-   * @param \Drupal\external_entities\Entity\ExternalEntityInterface $entity
-   *   The entity to prepare.
-   *
-   * @return array
-   *   The prepared data array in JSON:API format.
    */
   protected function prepareEntityData(ExternalEntityInterface $entity) {
     $api_type = $this->configuration['api_type'] ?? 'Cases';
-
-    $data = [
-      'data' => [
-        'type' => $api_type,
-        'attributes' => [],
-      ],
-    ];
-
-    // Get field definitions.
+    $data = ['data' => ['type' => $api_type, 'attributes' => []]];
     $field_definitions = $entity->getFieldDefinitions();
 
-    // Always skip these system fields
-    $system_fields = [
-      'id',
-      'uuid',
-      'type',
-      'langcode',
-      'default_langcode',
-      'created',
-      'changed',
-    ];
-
-    // Add configured read-only fields
+    $system_fields = ['id', 'uuid', 'type', 'langcode', 'default_langcode', 'created', 'changed'];
     $read_only_fields = $this->configuration['read_only_fields'] ?? [];
-    if (!is_array($read_only_fields)) {
-      $read_only_fields = [];
-    }
-
-    $skip_fields = array_merge($system_fields, $read_only_fields);
+    $skip_fields = array_merge($system_fields, is_array($read_only_fields) ? $read_only_fields : []);
 
     foreach ($field_definitions as $field_name => $field_definition) {
-      // Skip computed, read-only, and excluded fields
       if (in_array($field_name, $skip_fields) || $field_definition->isComputed() || $field_definition->isReadOnly()) {
         continue;
       }
 
-      // Get field value
       if ($entity->hasField($field_name)) {
         $field_item_list = $entity->get($field_name);
-
         if (!$field_item_list->isEmpty()) {
           $field_value = $field_item_list->value;
-
           if ($field_value !== NULL && $field_value !== '') {
-            // Map Drupal field names to API field names
             $api_field_name = $this->mapFieldName($field_name);
-
-            // CRITICAL: Skip case_number on CREATE (SuiteCRM auto-generates it)
-            // But include it on UPDATE (needed to identify the case)
             if ($api_field_name === 'case_number' && $entity->isNew()) {
               continue;
             }
-
             $data['data']['attributes'][$api_field_name] = $field_value;
           }
         }
       }
     }
 
-    // Add the UUID for updates.
     if (!$entity->isNew()) {
       $entity_data = $this->load($entity->id());
       if (isset($entity_data['uuid'])) {
         $data['data']['id'] = $entity_data['uuid'];
       }
     }
-
     return $data;
   }
 
   /**
    * Maps Drupal field names to API field names.
-   *
-   * @param string $drupal_field_name
-   *   The Drupal field name.
-   *
-   * @return string
-   *   The API field name.
    */
   protected function mapFieldName($drupal_field_name) {
-    // Get field mappers from the external entity type configuration
     if ($this->externalEntityType) {
       $field_mappers = $this->externalEntityType->get('field_mappers');
-
-      // Look for this field in the field mappers
       if (isset($field_mappers[$drupal_field_name])) {
         $field_mapper = $field_mappers[$drupal_field_name];
-
-        // Check if there's a mapping configured
-        if (isset($field_mapper['config']['property_mappings']['value']['config']['mapping'])) {
-          $api_field_name = $field_mapper['config']['property_mappings']['value']['config']['mapping'];
-          if (!empty($api_field_name)) {
-            return $api_field_name;
-          }
+        $config_mapping = $field_mapper['config']['property_mappings']['value']['config']['mapping'] ?? NULL;
+        if (!empty($config_mapping)) {
+          return $config_mapping;
         }
       }
     }
-
-    // Fallback: strip 'field_' prefix if present
     if (strpos($drupal_field_name, 'field_') === 0) {
       return substr($drupal_field_name, 6);
     }
-
-    // Special cases for common Drupal fields
-    $static_mapping = [
-      'title' => 'name',
-      'default_langcode' => 'langcode',
-    ];
-
+    $static_mapping = ['title' => 'name', 'default_langcode' => 'langcode'];
     return $static_mapping[$drupal_field_name] ?? $drupal_field_name;
   }
 
@@ -830,114 +693,74 @@ class SuiteCrmStorageClient extends StorageClientBase {
    * Clears the cached cases data.
    */
   public function clearCache() {
-    $cache_key = 'suitecrm_cases_all';
-    $this->cacheBackend->delete($cache_key);
+    $this->cacheBackend->delete('suitecrm_cases_all');
   }
 
   /**
    * Parses parameters from text format.
-   *
-   * @param string $text
-   *   Text with parameters in key=value format.
-   *
-   * @return array
-   *   Parsed parameters array.
    */
   protected function parseParameters($text) {
     if (empty($text)) {
       return [];
     }
-
     $parameters = [];
-    $lines = explode("\n", $text);
-
-    foreach ($lines as $line) {
+    foreach (explode("\n", $text) as $line) {
       $line = trim($line);
       if (empty($line) || strpos($line, '#') === 0) {
         continue;
       }
-
       if (strpos($line, '=') !== FALSE) {
         [$key, $value] = explode('=', $line, 2);
         $parameters[trim($key)] = trim($value);
       }
     }
-
     return $parameters;
   }
 
   /**
    * Formats parameters array to text format.
-   *
-   * @param mixed $parameters
-   *   Parameters array or string.
-   *
-   * @return string
-   *   Formatted parameters string.
    */
   protected function formatParameters($parameters) {
-    // Handle string input (from config).
     if (is_string($parameters)) {
       return $parameters;
     }
-
     if (empty($parameters) || !is_array($parameters)) {
       return '';
     }
-
     $lines = [];
     foreach ($parameters as $key => $value) {
       $lines[] = $key . '=' . $value;
     }
-
     return implode("\n", $lines);
   }
 
   /**
    * Parses read-only fields from text format.
-   *
-   * @param string $text
-   *   Text with field names, one per line.
-   *
-   * @return array
-   *   Array of field names.
    */
   protected function parseReadOnlyFields($text) {
     if (empty($text)) {
       return [];
     }
-
     $fields = [];
-    $lines = explode("\n", $text);
-
-    foreach ($lines as $line) {
+    foreach (explode("\n", $text) as $line) {
       $line = trim($line);
       if (!empty($line) && strpos($line, '#') !== 0) {
         $fields[] = $line;
       }
     }
-
     return $fields;
   }
 
   /**
    * Formats read-only fields array to text format.
-   *
-   * @param mixed $fields
-   *   Fields array or string.
-   *
-   * @return string
-   *   Formatted fields string.
    */
   protected function formatReadOnlyFields($fields) {
     if (is_string($fields)) {
       return $fields;
     }
-
     if (empty($fields) || !is_array($fields)) {
       return '';
     }
-
     return implode("\n", $fields);
   }
 

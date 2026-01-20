@@ -17,7 +17,7 @@ class SuiteCrmCaseForm extends ContentEntityForm {
     $entity = $this->entity;
     $result = parent::save($form, $form_state);
 
-    // Get a meaningful label for the message
+    // Get a meaningful label for the message.
     $label = $entity->label();
     if (!$label && $entity->hasField('field_name') && !$entity->get('field_name')->isEmpty()) {
       $label = $entity->get('field_name')->value;
@@ -28,9 +28,9 @@ class SuiteCrmCaseForm extends ContentEntityForm {
     if (!$label) {
       $label = $this->t('the case');
     }
-    
+
     $message_args = ['%label' => $label];
-    
+
     if ($result == SAVED_NEW) {
       $this->messenger()->addStatus($this->t('Created new case %label.', $message_args));
     }
@@ -38,12 +38,12 @@ class SuiteCrmCaseForm extends ContentEntityForm {
       $this->messenger()->addStatus($this->t('Updated case %label.', $message_args));
     }
 
-    // Redirect to the collection page or home
+    // Redirect to the collection page or home.
     try {
       $form_state->setRedirect('entity.suitecrm_case.collection');
     }
     catch (\Exception $e) {
-      // If collection route doesn't exist, redirect to home
+      // If collection route doesn't exist, redirect to home.
       $form_state->setRedirect('<front>');
     }
 
