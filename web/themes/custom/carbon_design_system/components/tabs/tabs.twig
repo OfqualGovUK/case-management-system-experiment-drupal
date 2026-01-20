@@ -28,8 +28,10 @@
       id="{{ tab.id }}"
       value="{{ tab.value }}"
       target="{{ tab.target }}"
+      role="tab"
       {% if tab.disabled %}
         disabled
+        aria-disabled="true"
       {% endif %}
     >
       {% if tab.url %}
