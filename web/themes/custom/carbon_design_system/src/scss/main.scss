@@ -58,3 +58,17 @@ body {
 cds-pagination[page-sizes-hidden] cds-page-sizes-select {
   display: none !important;
 }
+
+// Temp component spacing 1em
+.tabs.primary,
+#block-carbon-design-system-breadcrumbs,
+#block-carbon-design-system-page-title,
+.messages-list,
+.views-element-container header {
+  margin-bottom: 1em;
+}
+
+// Temp component spacing 2em
+.field-group-carbon-structured-list {
+  margin-bottom: 2em;
+}

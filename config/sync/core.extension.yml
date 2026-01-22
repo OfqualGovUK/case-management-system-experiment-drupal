@@ -11,6 +11,8 @@ module:
   big_pipe: 0
   block: 0
   breakpoint: 0
+  carbon_components_content: 0
+  carbon_design_system_content: 0
   carbon_design_system_views: 0
   ckeditor5: 0
   config: 0

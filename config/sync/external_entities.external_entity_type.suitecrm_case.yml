@@ -152,7 +152,7 @@ data_aggregator:
       -
         id: suitecrm_rest
         config:
-          list_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases?page[number]=1&page[size]=9999999'
+          list_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases?page[number]=1&page[size]=99999999999'
           push_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule'
           single_endpoint: 'https://dev-apim-drupal.azure-api.net/suitecrm/custom/oqmodule/Cases?filter[case_number][eq]={id}'
           api_type: Cases
