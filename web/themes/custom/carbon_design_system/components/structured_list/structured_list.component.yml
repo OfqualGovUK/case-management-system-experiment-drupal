@@ -1,0 +1,35 @@
+name: Structured List
+status: stable
+description: Implements the Carbon Design System Structured List using Web Components. Structured lists group content that is similar or related, such as terms and definitions.
+props:
+  attributes:
+    type: Drupal\Core\Template\Attribute
+    description: HTML attributes for the outermost <cds-structured-list> element.
+    required: false
+  size:
+    type: string
+    description: The size of the list. Must be one of 'sm' (condensed), 'md', or 'lg' (default). Defaults to 'lg'.
+    required: false
+    default: lg
+  selection:
+    type: boolean
+    description: Set to true to enable selectable rows. Defaults to false.
+    required: false
+    default: false
+  flush:
+    type: boolean
+    description: Set to true for flush alignment (no indentation). Not available with selection variant. Defaults to false.
+    required: false
+    default: false
+  headers:
+    type: array
+    description: Array of column header labels. Each item should be a string for the header text.
+    required: true
+  rows:
+    type: array
+    description: Array of row data. Each row should be an array of cell values matching the headers.
+    required: true
+  selectedRow:
+    type: integer
+    description: The index of the initially selected row (0-based). Only used when selection is true.
+    required: false

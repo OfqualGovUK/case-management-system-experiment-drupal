@@ -1,0 +1,46 @@
+{#
+/**
+ * @file
+ * Template for the Carbon Structured List component.
+ *
+ * Available properties:
+ * - headers: Array of column header labels.
+ * - rows: Array of row data, each containing cell values.
+ * - size: Size variant - 'sm' (condensed), 'md', or 'lg' (default).
+ * - selection: Boolean to enable selectable rows.
+ * - flush: Boolean for flush alignment (not available with selection).
+ * - selectedRow: Index of initially selected row (for selection variant).
+ * - attributes: HTML attributes for the <cds-structured-list> element.
+#}
+
+<cds-structured-list
+  {% if size and size != 'lg' %}size="{{ size }}"{% endif %}
+  {% if selection %}selection{% endif %}
+  {% if flush and not selection %}flush{% endif %}
+  {{ attributes }}
+>
+  {# Header Row - only if headers are provided #}
+  {% if headers is not empty %}
+    <cds-structured-list-head>
+      <cds-structured-list-row>
+        {% for header in headers %}
+          <cds-structured-list-header-cell class="structured-list-col-{{ loop.index }}">{{ header }}</cds-structured-list-header-cell>
+        {% endfor %}
+      </cds-structured-list-row>
+    </cds-structured-list-head>
+  {% endif %}
+
+  {# Body Rows #}
+  <cds-structured-list-body>
+    {% for row_index, row in rows %}
+      <cds-structured-list-row
+        {% if selection and selectedRow is defined and selectedRow == row_index %}selected{% endif %}
+        {% if selection %}name="structured-list-selection" value="{{ row_index }}"{% endif %}
+      >
+        {% for cell in row %}
+          <cds-structured-list-cell class="structured-list-col-{{ loop.index }}">{{ cell|raw }}</cds-structured-list-cell>
+        {% endfor %}
+      </cds-structured-list-row>
+    {% endfor %}
+  </cds-structured-list-body>
+</cds-structured-list>

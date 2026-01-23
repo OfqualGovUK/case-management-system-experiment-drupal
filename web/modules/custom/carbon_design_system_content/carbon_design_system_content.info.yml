@@ -1,0 +1,9 @@
+name: 'Carbon Design System - Components Content Integration'
+type: module
+description: 'Provides integration between Field Group and Carbon Design System components'
+core_version_requirement: ^10 || ^11
+package: 'Carbon Design System'
+
+dependencies:
+  - field_group:field_group
+  - drupal:system

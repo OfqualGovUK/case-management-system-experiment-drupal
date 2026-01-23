@@ -339,7 +339,7 @@ display:
           entity_type: suitecrm_case
           entity_field: id
           plugin_id: standard
-          order: ASC
+          order: DESC
           expose:
             label: ''
             field_identifier: ''

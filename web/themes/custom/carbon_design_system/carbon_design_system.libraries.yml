@@ -14,3 +14,8 @@ modal:
     components/modal/modal.js: {}
   dependencies:
     - core/drupal
+
+structured_list_custom:
+  css:
+    theme:
+      components/structured_list/custom.css: {}

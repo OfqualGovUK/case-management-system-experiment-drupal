@@ -1,4 +1,4 @@
-name: 'Carbon Views Integration'
+name: 'Carbon Design System - Views Integration'
 type: module
 description: 'Views style plugins for Carbon Design System'
 core_version_requirement: ^10 || ^11

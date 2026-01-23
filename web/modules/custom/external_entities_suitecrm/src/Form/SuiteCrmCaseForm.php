@@ -38,14 +38,8 @@ class SuiteCrmCaseForm extends ContentEntityForm {
       $this->messenger()->addStatus($this->t('Updated case %label.', $message_args));
     }
 
-    // Redirect to the collection page or home.
-    try {
-      $form_state->setRedirect('entity.suitecrm_case.collection');
-    }
-    catch (\Exception $e) {
-      // If collection route doesn't exist, redirect to home.
-      $form_state->setRedirect('<front>');
-    }
+    // Redirect back to the case page.
+    $form_state->setRedirectUrl($entity->toUrl('canonical'));
 
     return $result;
   }
