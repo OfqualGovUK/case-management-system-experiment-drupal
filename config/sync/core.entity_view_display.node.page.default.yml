@@ -7,6 +7,7 @@ dependencies:
     - field.field.node.page.field_title
     - node.type.page
   module:
+    - field_layout
     - text
     - user
 third_party_settings:
