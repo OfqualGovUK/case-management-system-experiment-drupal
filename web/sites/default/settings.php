@@ -876,14 +876,23 @@ $config['openid_connect.client.entraid']['settings']['client_id'] = $clientId;
 $config['openid_connect.client.entraid']['settings']['client_secret'] = $clientSecret;
 $config['openid_connect.client.entraid']['settings']['authorization_endpoint'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/authorize';
 $config['openid_connect.client.entraid']['settings']['token_endpoint'] = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/token';
-$config['openid_connect.client.entraid']['settings']['userinfo_endpoint'] = $userinfoEndpoint;
 $config['openid_connect.client.entraid']['settings']['authorization_endpoint_extra'] = 'resource=api://' . $clientId;
+$config['openid_connect.client.entraid']['settings']['userinfo_endpoint'] = 'https://graph.microsoft.com/v1.0/me';
 
-// Configure scopes
+// Request scopes for login AND refresh token
 $config['openid_connect.client.entraid']['settings']['scopes'] = [
   'openid',
   'offline_access',
   'api://' . $clientId . '/access_as_user'
+];
+
+$config['openid_connect.settings']['always_save_userinfo'] = TRUE;
+$config['openid_connect.settings']['override_registration_settings'] = TRUE;
+
+// Map userinfo fields to Drupal user fields
+$config['openid_connect.settings']['userinfo_mappings'] = [
+  'name' => 'preferred_username',  // Username from UPN
+  'mail' => 'email',               // Email from Graph API
 ];
 
 /* Shield settings */

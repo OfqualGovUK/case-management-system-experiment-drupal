@@ -7,6 +7,7 @@
 
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\user\UserInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_help().
@@ -45,6 +46,221 @@ function entra_jwt_token_openid_connect_post_authorize(UserInterface $account, a
     if (!empty($context['tokens']['access_token'])) {
       $token_service->storeAccessToken($context['tokens']['access_token']);
       \Drupal::logger('entra_jwt_token')->info('Access token stored after Entra authentication');
+    }
+
+    // Store refresh token.
+    if (!empty($context['tokens']['refresh_token'])) {
+      $token_service->storeRefreshToken($context['tokens']['refresh_token']);
+      \Drupal::logger('entra_jwt_token')->info('Refresh token stored after Entra authentication');
+    }
+  }
+}
+
+/**
+ * Implements hook_openid_connect_userinfo_alter().
+ *
+ * Transforms Graph API response into OpenID Connect compatible format.
+ * This enables auto-provisioning of users.
+ */
+function entra_jwt_token_openid_connect_userinfo_alter(?array &$userinfo, array $context) {
+  // Handle null userinfo (Graph API call failed)
+  if ($userinfo === NULL) {
+    $userinfo = [];
+  }
+
+  if (isset($context['plugin_id']) && $context['plugin_id'] === 'entraid') {
+
+    // First, try to get info from the ID token (JWT)
+    if (!empty($context['tokens']['id_token'])) {
+      $id_token = $context['tokens']['id_token'];
+      $parts = explode('.', $id_token);
+      if (count($parts) === 3) {
+        $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), TRUE);
+
+        // Extract sub from ID token
+        if (isset($payload['sub'])) {
+          $userinfo['sub'] = $payload['sub'];
+        }
+
+        // Get email from ID token
+        if (isset($payload['email'])) {
+          $userinfo['email'] = $payload['email'];
+        }
+
+        // Get preferred_username from ID token
+        if (isset($payload['preferred_username'])) {
+          $userinfo['preferred_username'] = $payload['preferred_username'];
+        }
+      }
+    }
+
+    // Fallback: Graph API returns 'mail' and 'id'
+    if (empty($userinfo['email']) && isset($userinfo['mail'])) {
+      $userinfo['email'] = $userinfo['mail'];
+    }
+
+    if (empty($userinfo['sub']) && isset($userinfo['id'])) {
+      $userinfo['sub'] = $userinfo['id'];
+    }
+
+    // Use userPrincipalName as fallback
+    if (empty($userinfo['email']) && isset($userinfo['userPrincipalName'])) {
+      $userinfo['email'] = $userinfo['userPrincipalName'];
+    }
+
+    if (empty($userinfo['preferred_username']) && isset($userinfo['userPrincipalName'])) {
+      $userinfo['preferred_username'] = $userinfo['userPrincipalName'];
+    }
+
+    \Drupal::logger('entra_jwt_token')->info('Userinfo - email: @email, sub: @sub', [
+      '@email' => $userinfo['email'] ?? 'NOT SET',
+      '@sub' => $userinfo['sub'] ?? 'NOT SET',
+    ]);
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_login_form.
+ *
+ * Prevents users with connected Entra accounts from logging in via standard form.
+ */
+function entra_jwt_token_form_user_login_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // Initialize #validate array if it doesn't exist
+  if (!isset($form['#validate'])) {
+    $form['#validate'] = [];
+  }
+
+  // Add custom validation handler at the beginning
+  array_unshift($form['#validate'], 'entra_jwt_token_user_login_validate');
+
+  // Initialize #submit array if it doesn't exist
+  if (!isset($form['#submit'])) {
+    $form['#submit'] = [];
+  }
+
+  // Add submit handler as backup
+  array_unshift($form['#submit'], 'entra_jwt_token_user_login_submit_check');
+}
+
+/**
+ * Custom validation handler for user login form.
+ *
+ * Blocks login for users who have connected Entra accounts.
+ */
+function entra_jwt_token_user_login_validate(&$form, FormStateInterface $form_state) {
+  $username = $form_state->getValue('name');
+
+  if (empty($username)) {
+    return;
+  }
+
+  // Try to load user by username or email
+  $account = user_load_by_name($username);
+  if (!$account) {
+    $account = user_load_by_mail($username);
+  }
+
+  if ($account) {
+    try {
+      // Check authmap table directly
+      $authmap_storage = \Drupal::service('externalauth.authmap');
+      $authname = $authmap_storage->get($account->id(), 'openid_connect.entraid');
+
+      if ($authname) {
+        // This account has Entra connection - stop all validation
+        $form_state->clearErrors();
+
+        // Set prominent error
+        \Drupal::messenger()->addError(
+          t('<strong>This account uses Entra ID Single Sign-On.</strong><br>Please click the <strong>"Log in with EntraId"</strong> button below to access your account.')
+        );
+
+        // Prevent form submission
+        $form_state->setRebuild(TRUE);
+
+        \Drupal::logger('entra_jwt_token')->notice('Blocked password login for Entra user: @username', [
+          '@username' => $account->getAccountName(),
+        ]);
+      }
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('entra_jwt_token')->error('Error checking Entra connection: @message', [
+        '@message' => $e->getMessage(),
+      ]);
+    }
+  }
+}
+
+/**
+ * Submit handler - backup check (shouldn't normally execute).
+ */
+function entra_jwt_token_user_login_submit_check(&$form, FormStateInterface $form_state) {
+  $username = $form_state->getValue('name');
+
+  if (!empty($username)) {
+    $account = user_load_by_name($username);
+    if (!$account) {
+      $account = user_load_by_mail($username);
+    }
+
+    if ($account) {
+      try {
+        $authmap_storage = \Drupal::service('externalauth.authmap');
+        $authname = $authmap_storage->get($account->id(), 'openid_connect.entraid');
+
+        if ($authname) {
+          // Stop submission and redirect
+          $form_state->setRedirect('<front>');
+          \Drupal::messenger()->addError(t('This account must use Entra ID login.'));
+
+          \Drupal::logger('entra_jwt_token')->warning('SECURITY: Entra user bypassed validation: @username', [
+            '@username' => $account->getAccountName(),
+          ]);
+        }
+      }
+      catch (\Exception $e) {
+        \Drupal::logger('entra_jwt_token')->error('Error in submit check: @message', [
+          '@message' => $e->getMessage(),
+        ]);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_user_login().
+ *
+ * Final security check to ensure Entra-connected accounts only use Entra.
+ */
+function entra_jwt_token_user_login(UserInterface $account) {
+  $route = \Drupal::routeMatch()->getRouteName();
+
+  // If this is not an OpenID Connect login, check if user should use Entra
+  if ($route !== 'openid_connect.redirect_controller_redirect') {
+    try {
+      $authmap_storage = \Drupal::service('externalauth.authmap');
+      $authname = $authmap_storage->get($account->id(), 'openid_connect.entraid');
+
+      if ($authname) {
+        \Drupal::logger('entra_jwt_token')->critical('SECURITY: User @username bypassed all Entra login checks - forcing logout', [
+          '@username' => $account->getAccountName(),
+        ]);
+
+        // Log them out immediately
+        user_logout();
+
+        \Drupal::messenger()->addError(t('This account must be accessed via Entra ID login.'));
+
+        // Redirect to Entra login
+        $response = new \Symfony\Component\HttpFoundation\RedirectResponse('/user/login/entraid');
+        $response->send();
+        exit;
+      }
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('entra_jwt_token')->error('Error in user_login hook: @message', [
+        '@message' => $e->getMessage(),
+      ]);
     }
   }
 }

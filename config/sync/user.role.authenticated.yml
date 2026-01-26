@@ -9,6 +9,7 @@ dependencies:
     - external_entities_suitecrm
     - filter
     - form_mode_manager
+    - openid_connect
     - search
     - shortcut
     - system
@@ -22,6 +23,7 @@ permissions:
   - 'access content'
   - 'access shortcuts'
   - 'create suitecrm_case external entity'
+  - 'manage own openid connect accounts'
   - 'search content'
   - 'update suitecrm_case external entity'
   - 'use suitecrm_case.case_description form mode'
