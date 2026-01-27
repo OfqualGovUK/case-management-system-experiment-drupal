@@ -1,0 +1,29 @@
+/**
+ * @file
+ * Styles for Carbon Structured List Table of Contents.
+ */
+
+.carbon-toc-wrapper {
+  margin-bottom: 2rem;
+}
+
+.carbon-structured-list-toc {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.carbon-structured-list-toc li {
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+/* Smooth scroll behavior for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Add scroll padding to account for any fixed headers */
+.cds--structured-list-row[id] {
+  scroll-margin-top: 2rem;
+}

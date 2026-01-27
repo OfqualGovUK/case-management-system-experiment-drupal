@@ -35,13 +35,12 @@ third_party_settings:
       label: 'Case Details'
       parent_name: ''
       region: content
-      weight: 0
+      weight: 1
       format_type: carbon_structured_list
       format_settings:
         size: lg
         custom_headers: ''
-        id: ''
-        classes: ''
+        show_in_toc: '1'
         show_empty_fields: 0
         label_as_html: 0
         selection: 0
@@ -56,17 +55,16 @@ third_party_settings:
       label: 'Other Fields'
       parent_name: ''
       region: content
-      weight: 1
+      weight: 2
       format_type: carbon_structured_list
       format_settings:
+        size: lg
+        custom_headers: ''
+        show_in_toc: '1'
         show_empty_fields: 0
         label_as_html: 0
-        id: ''
-        classes: ''
-        size: lg
         selection: 0
         flush: 0
-        custom_headers: ''
 id: suitecrm_case.suitecrm_case.default
 targetEntityType: suitecrm_case
 bundle: suitecrm_case
@@ -129,7 +127,7 @@ content:
         case_description: 0
       show_default: 0
     third_party_settings: {  }
-    weight: 5
+    weight: 6
     region: content
   field_name:
     type: string

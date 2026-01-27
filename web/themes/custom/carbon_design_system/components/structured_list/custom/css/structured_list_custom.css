@@ -1,0 +1,89 @@
+/**
+ * Carbon Structured List - Percentage-Based Column Widths
+ *
+ * This ensures all structured lists have consistent column widths using percentages.
+ * Add this to your theme's CSS file.
+ */
+
+/* Primary solution: 30% label, 70% value */
+.field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1,
+.field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-1 {
+  width: 30%;
+}
+
+.field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-2,
+.field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-2 {
+  width: 70%;
+}
+
+/* Ensure the structured list uses full width */
+.field-group-carbon-structured-list cds-structured-list {
+  width: 100%;
+}
+
+/* Additional styling for consistency */
+
+/* Consistent spacing between lists */
+.field-group-carbon-structured-list {
+  margin-bottom: 2rem;
+}
+
+/* Group heading styles */
+.field-group-carbon-structured-list h2 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Ensure cells have consistent padding */
+.field-group-carbon-structured-list cds-structured-list-cell {
+  padding: 0.75rem 1rem;
+  vertical-align: top;
+}
+
+/* Style for label column */
+.field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1 {
+  font-weight: 600;
+}
+
+/* Hide background for empty label cells (form mode links) */
+.field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1:empty {
+  background-color: transparent;
+}
+
+/* Clean up form mode links */
+.field-group-carbon-structured-list .form-mode-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.field-group-carbon-structured-list .form-mode-links li {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1,
+  .field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-1 {
+    width: 40%;
+  }
+
+  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-2,
+  .field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-2 {
+    width: 60%;
+  }
+}
+
+@media (max-width: 480px) {
+  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1,
+  .field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-1 {
+    width: 45%;
+  }
+
+  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-2,
+  .field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-2 {
+    width: 55%;
+  }
+}

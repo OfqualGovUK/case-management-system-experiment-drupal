@@ -10,7 +10,6 @@ dependencies:
     - node.type.article
   module:
     - field_layout
-    - layout_discovery
     - user
 third_party_settings:
   field_layout:
@@ -25,6 +24,8 @@ bundle: article
 mode: rss
 content:
   links:
+    settings: {  }
+    third_party_settings: {  }
     weight: 100
     region: content
 hidden:

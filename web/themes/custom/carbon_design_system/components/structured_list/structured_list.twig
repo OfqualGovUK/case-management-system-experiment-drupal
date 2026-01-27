@@ -5,14 +5,16 @@
  *
  * Available properties:
  * - headers: Array of column header labels.
- * - rows: Array of row data, each containing cell values.
+ * - rows: Array of row data, each containing:
+ *   - label: The field label
+ *   - value: The rendered field value
  * - size: Size variant - 'sm' (condensed), 'md', or 'lg' (default).
  * - selection: Boolean to enable selectable rows.
  * - flush: Boolean for flush alignment (not available with selection).
  * - selectedRow: Index of initially selected row (for selection variant).
  * - attributes: HTML attributes for the <cds-structured-list> element.
+ */
 #}
-
 <cds-structured-list
   {% if size and size != 'lg' %}size="{{ size }}"{% endif %}
   {% if selection %}selection{% endif %}
@@ -37,9 +39,17 @@
         {% if selection and selectedRow is defined and selectedRow == row_index %}selected{% endif %}
         {% if selection %}name="structured-list-selection" value="{{ row_index }}"{% endif %}
       >
-        {% for cell in row %}
-          <cds-structured-list-cell class="structured-list-col-{{ loop.index }}">{{ cell|raw }}</cds-structured-list-cell>
-        {% endfor %}
+        {# Support both array format (legacy) and keyed format #}
+        {% if row.label is defined %}
+          {# New keyed format #}
+          <cds-structured-list-cell class="structured-list-col-1">{{ row.label }}</cds-structured-list-cell>
+          <cds-structured-list-cell class="structured-list-col-2">{{ row.value|raw }}</cds-structured-list-cell>
+        {% else %}
+          {# Legacy array format #}
+          {% for cell in row %}
+            <cds-structured-list-cell class="structured-list-col-{{ loop.index }}">{{ cell|raw }}</cds-structured-list-cell>
+          {% endfor %}
+        {% endif %}
       </cds-structured-list-row>
     {% endfor %}
   </cds-structured-list-body>

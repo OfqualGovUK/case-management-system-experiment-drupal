@@ -8,6 +8,7 @@ dependencies:
     - field.field.node.page.field_title
     - node.type.page
   module:
+    - field_layout
     - text
     - user
 third_party_settings:
@@ -31,6 +32,8 @@ content:
     weight: 100
     region: content
   links:
+    settings: {  }
+    third_party_settings: {  }
     weight: 101
     region: content
 hidden:

@@ -18,4 +18,12 @@ modal:
 structured_list_custom:
   css:
     theme:
-      components/structured_list/custom.css: {}
+      components/structured_list/custom/css/structured_list_custom.css: {}
+
+structured_list_toc:
+  version: 1.x
+  css:
+    theme:
+      components/structured_list/custom/css/structured_list_toc.css: {}
+  dependencies:
+    - core/drupal
