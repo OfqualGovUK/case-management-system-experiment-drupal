@@ -2,6 +2,8 @@ uuid: 409595dd-92c4-43f8-b858-f3cd281aa50a
 langcode: en-gb
 status: true
 dependencies:
+  module:
+    - user
   theme:
     - carbon_design_system
 _core:
@@ -19,4 +21,11 @@ settings:
   provider: core
   primary: false
   secondary: true
-visibility: {  }
+visibility:
+  user_role:
+    id: user_role
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'
+    roles:
+      administrator: administrator

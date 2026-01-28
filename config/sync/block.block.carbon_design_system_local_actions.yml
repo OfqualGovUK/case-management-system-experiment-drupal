@@ -2,6 +2,8 @@ uuid: 07332039-605d-4320-afe7-cba30acde368
 langcode: en-gb
 status: true
 dependencies:
+  module:
+    - user
   theme:
     - carbon_design_system
 _core:
@@ -17,4 +19,11 @@ settings:
   label: 'Primary admin actions'
   label_display: '0'
   provider: core
-visibility: {  }
+visibility:
+  user_role:
+    id: user_role
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'
+    roles:
+      administrator: administrator
