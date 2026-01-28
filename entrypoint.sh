@@ -37,6 +37,10 @@ for i in $(seq 1 ${MYSQL_READY_MAX_RETRIES}); do
   fi
 done
 
+# Clear all caches to rebuild hook definitions
+log "[INFO] Clearing all caches to rebuild module hooks"
+drush cr || log "[WARN] Initial cache clear had issues"
+
 # Install Drupal if not installed
 echo "[INFO] Checking Drupal bootstrap status"
 BOOTSTRAP="$(drush core:status --fields=bootstrap --format=string || true)"
