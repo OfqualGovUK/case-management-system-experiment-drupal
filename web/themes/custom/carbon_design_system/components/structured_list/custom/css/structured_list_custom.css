@@ -2,7 +2,7 @@
  * Carbon Structured List - Percentage-Based Column Widths
  *
  * This ensures all structured lists have consistent column widths using percentages.
- * Add this to your theme's CSS file.
+ * Mobile: Columns stack vertically.
  */
 
 /* Primary solution: 30% label, 70% value */
@@ -63,7 +63,7 @@
   margin-right: 0.5rem;
 }
 
-/* Responsive adjustments */
+/* Tablet: Slightly adjusted widths */
 @media (max-width: 768px) {
   .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1,
   .field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-1 {
@@ -76,14 +76,47 @@
   }
 }
 
-@media (max-width: 480px) {
-  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1,
-  .field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-1 {
-    width: 45%;
+/* Mobile: Stack columns vertically */
+@media (max-width: 640px) {
+  /* Make each row display as a block stack */
+  .field-group-carbon-structured-list cds-structured-list-row {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
   }
 
+  /* Full width cells */
+  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1,
+  .field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-1,
   .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-2,
   .field-group-carbon-structured-list cds-structured-list-header-cell.structured-list-col-2 {
-    width: 55%;
+    width: 100%;
+    display: block;
+  }
+
+  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1 {
+    padding: 0.5rem 0 0;
+  }
+
+  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-2 {
+    padding: 0 0 0.5rem;
+  }
+
+  /* Empty label cells should still be hidden */
+  .field-group-carbon-structured-list cds-structured-list-cell.structured-list-col-1:empty {
+    display: none;
+  }
+
+  .field-group-carbon-structured-list .form-mode-links {
+    padding: 1rem 0;
+  }
+
+  .field-group-carbon-structured-list cds-structured-list-row:last-of-type {
+    border-bottom: 0;
+  }
+
+  /* Adjust list spacing on mobile */
+  .field-group-carbon-structured-list {
+    margin-bottom: 2rem;
   }
 }

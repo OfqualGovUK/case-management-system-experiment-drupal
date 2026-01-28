@@ -18,6 +18,7 @@ libraries-override:
 regions:
   header: 'Header'
   navigation: 'Primary menu'
+  content_top: 'Top Content'
   content: 'Content'
   footer: 'Footer'
 dependencies:

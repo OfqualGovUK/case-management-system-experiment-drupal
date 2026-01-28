@@ -8,8 +8,8 @@ _core:
   default_config_hash: CdXfDmRgAvms7EQovxxWPdYi0GitxeRbVtScYK16ZH0
 id: carbon_design_system_local_actions
 theme: carbon_design_system
-region: content
-weight: 2
+region: header
+weight: -1
 provider: null
 plugin: local_actions_block
 settings:

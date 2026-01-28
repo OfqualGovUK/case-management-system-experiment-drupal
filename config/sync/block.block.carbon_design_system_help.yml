@@ -10,7 +10,7 @@ _core:
   default_config_hash: jccFSSVqV0WCDb6NtML1VWAWTtDbZ-zn5YgTRMgMrIM
 id: carbon_design_system_help
 theme: carbon_design_system
-region: content
+region: header
 weight: -2
 provider: null
 plugin: help_block

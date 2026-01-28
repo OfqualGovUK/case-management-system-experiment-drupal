@@ -10,8 +10,8 @@ _core:
   default_config_hash: '-Ac3ISpIT0PQ-whzD7_dw0SdKi6dAbRFNWdSjOiVDqg'
 id: carbon_design_system_messages
 theme: carbon_design_system
-region: content
-weight: 1
+region: header
+weight: 0
 provider: null
 plugin: system_messages_block
 settings:
