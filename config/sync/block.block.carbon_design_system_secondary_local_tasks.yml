@@ -2,13 +2,15 @@ uuid: 409595dd-92c4-43f8-b858-f3cd281aa50a
 langcode: en-gb
 status: true
 dependencies:
+  module:
+    - user
   theme:
     - carbon_design_system
 _core:
   default_config_hash: 2L0geP-ixCbCkEpW6BVF6H7vDUZN4ea07_Y9CociQm4
 id: carbon_design_system_secondary_local_tasks
 theme: carbon_design_system
-region: content
+region: header
 weight: -3
 provider: null
 plugin: local_tasks_block
@@ -19,4 +21,11 @@ settings:
   provider: core
   primary: false
   secondary: true
-visibility: {  }
+visibility:
+  user_role:
+    id: user_role
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'
+    roles:
+      administrator: administrator

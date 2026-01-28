@@ -24,23 +24,7 @@ cds-header-menu-item {
 }
 
 main.cds--content {
-  padding-top: 48px; // Mobile
-
-  @media (min-width: 672px) {
-    padding-top: 48px; // Tablet - same height
-  }
-
-  @media (min-width: 1056px) {
-    padding-top: 48px; // Desktop - same height
-  }
-}
-
-cds-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 8000;
+  padding-top: 48px;
 }
 
 html {
@@ -71,4 +55,12 @@ cds-pagination[page-sizes-hidden] cds-page-sizes-select {
 // Temp component spacing 2em
 .field-group-carbon-structured-list {
   margin-bottom: 2em;
+}
+
+// Content top
+
+.content_top {
+  background-color: #f4f4f4;
+  margin-bottom: 1rem;
+  padding: 1rem;
 }
