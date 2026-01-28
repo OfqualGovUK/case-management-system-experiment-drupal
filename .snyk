@@ -1,0 +1,7 @@
+# .snyk
+version: v1
+ignore:
+  '*':
+    - reason: 'Test fixture file for Drupal package_manager module - not production code'
+      expires: 2099-12-31
+      path: 'web/core/modules/package_manager/tests/fixtures/fake_site/composer.lock'
